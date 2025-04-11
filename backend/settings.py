@@ -86,20 +86,22 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
-"""
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'padel_db',
-        'USER': 'zoclark',
-        'PASSWORD': 'no123123carlos',
-        'HOST': 'localhost',
-        'PORT': '5432',
+
+if os.getenv("RENDER") == "true":
+    DATABASES = {
+        'default': dj_database_url.config(conn_max_age=600, ssl_require=True)
     }
-}"""
-DATABASES = {
-    'default': dj_database_url.config(conn_max_age=600, ssl_require=True)
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'padel_db',
+            'USER': 'zoclark',
+            'PASSWORD': 'no123123carlos',
+            'HOST': 'localhost',
+            'PORT': '5432',
+        }
+    }
 
 
 # Password validation
@@ -145,14 +147,23 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
 AUTH_USER_MODEL = 'reservas.Usuario'
 CORS_ALLOW_ALL_ORIGINS = True
-
-
-
 DATABASES['default'] = dj_database_url.config(conn_max_age=600, ssl_require=True)
-
 SECRET_KEY = os.environ.get('SECRET_KEY', 'clave-insegura-por-defecto')
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '*').split(',')
+
+# Desactiva CSRF en endpoints protegidos por JWT
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.AllowAny',
+    )
+}
+
+# Evita que Django fuerce CSRF en vistas API
+CSRF_COOKIE_SECURE = True  # si usas HTTPS
+CSRF_TRUSTED_ORIGINS = ['https://padel-clases.onrender.com']
