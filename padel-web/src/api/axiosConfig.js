@@ -8,4 +8,10 @@ const api = axios.create({
   },
 });
 
+
+// Si el token de acceso está almacenado en localStorage
+const accessToken = localStorage.getItem('accessToken');
+
+api.defaults.headers['Authorization'] = `Bearer ${accessToken}`;
+
 export default api;

@@ -26,7 +26,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 #SECRET_KEY = 'django-insecure-rg&#yh%zfkg$a+9aqem41e!(o89(uiw$kfq7w)xrncuyuzeyu-'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-#DEBUG = True
+DEBUG = True
 
 #ALLOWED_HOSTS = []
 
@@ -51,7 +51,7 @@ MIDDLEWARE = [
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
-    "django.middleware.csrf.CsrfViewMiddleware",
+    #"django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
@@ -149,21 +149,23 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'reservas.Usuario'
 CORS_ALLOW_ALL_ORIGINS = True
-DATABASES['default'] = dj_database_url.config(conn_max_age=600, ssl_require=True)
 SECRET_KEY = os.environ.get('SECRET_KEY', 'clave-insegura-por-defecto')
 DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '*').split(',')
 
-# Desactiva CSRF en endpoints protegidos por JWT
+# Configuración de Rest Framework para autenticación por JWT
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.AllowAny',
-    )
+        'rest_framework.permissions.AllowAny',  # Permite que cualquier usuario acceda a los endpoints de JWT
+    ),
 }
 
 # Evita que Django fuerce CSRF en vistas API
 CSRF_COOKIE_SECURE = True  # si usas HTTPS
-CSRF_TRUSTED_ORIGINS = ['https://padel-clases.onrender.com']
+CORS_ALLOWED_ORIGINS = [
+    'http://127.0.0.1:8000',  # o la URL de tu frontend
+    'https://padel-clases.onrender.com',
+]
