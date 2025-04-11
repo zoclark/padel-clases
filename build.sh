@@ -14,6 +14,7 @@ rm -rf backend/staticfiles/*
 mkdir -p backend/staticfiles
 cp -r padel-web/dist/* backend/staticfiles/
 
+
 # 4. Migraciones y static
 python manage.py migrate
 python manage.py collectstatic --noinput
