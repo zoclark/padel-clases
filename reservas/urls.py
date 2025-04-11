@@ -19,3 +19,8 @@ index_view = never_cache(TemplateView.as_view(template_name="index.html"))
 urlpatterns += [
     re_path(r"^.*$", index_view),  # Cualquier ruta que no sea de API va a index.html
 ]
+
+from django.conf import settings
+from django.conf.urls.static import static
+
+urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

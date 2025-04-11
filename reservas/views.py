@@ -98,3 +98,6 @@ class FrontendAppView(View):
             return HttpResponse(
                 "index.html not found! Build your frontend first.", status=501
             )
+        
+
+        

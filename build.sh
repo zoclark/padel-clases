@@ -1,20 +1,19 @@
 #!/usr/bin/env bash
 
-# 1. Instalar dependencias Python
+# Instala dependencias Python
 pip install -r requirements.txt
 
-# 2. Compilar frontend React
+# Compila frontend React
 cd padel-web
 npm install
 npm run build
 cd ..
 
-# 3. Copiar build de React a Django static
+# Copia el build de React al directorio estático de Django
 rm -rf backend/staticfiles/*
 mkdir -p backend/staticfiles
 cp -r padel-web/dist/* backend/staticfiles/
 
-# 4. Migraciones y collectstatic
+# Migraciones y collectstatic
 python manage.py migrate
 python manage.py collectstatic --noinput
-
