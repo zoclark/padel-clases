@@ -28,3 +28,10 @@ urlpatterns = [
     path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
 ]
+
+from django.urls import re_path
+from reservas.views import FrontendAppView  # o donde lo hayas puesto
+
+urlpatterns += [
+    re_path(r'^.*$', FrontendAppView.as_view()),  # cualquier ruta no API sirve React
+]

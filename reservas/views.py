@@ -83,15 +83,18 @@ def historial_entrenamientos(request):
     return Response(serializer.data)
 
 
+
 from django.views.generic import View
 from django.http import HttpResponse
+from django.conf import settings
 import os
 
 class FrontendAppView(View):
     def get(self, request):
         try:
-            index_path = os.path.join(os.path.dirname(__file__), '../staticfiles/index.html')
-            with open(index_path, 'r', encoding='utf-8') as f:
+            with open(os.path.join(settings.STATIC_ROOT, "index.html")) as f:
                 return HttpResponse(f.read())
         except FileNotFoundError:
-            return HttpResponse("React build not found. Did you run npm run build?", status=501)
+            return HttpResponse(
+                "index.html not found! Build your frontend first.", status=501
+            )
