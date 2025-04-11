@@ -85,19 +85,19 @@ def historial_entrenamientos(request):
 
 
 from django.views.generic import View
-from django.http import HttpResponse
-from django.conf import settings
+from django.http import HttpResponse, HttpResponseServerError
 import os
+from django.conf import settings
 
 class FrontendAppView(View):
     def get(self, request):
-        try:
-            with open(os.path.join(settings.STATIC_ROOT, "index.html")) as f:
+        index_path = os.path.join(settings.STATIC_ROOT, "index.html")
+        if os.path.exists(index_path):
+            with open(index_path, encoding="utf-8") as f:
                 return HttpResponse(f.read())
-        except FileNotFoundError:
-            return HttpResponse(
-                "index.html not found! Build your frontend first.", status=501
-            )
-        
+        return HttpResponseServerError("index.html not found. Did you run the build and copy steps?")
+
+print("STATIC_ROOT:", settings.STATIC_ROOT)
+print("INDEX EXISTS:", os.path.exists(os.path.join(settings.STATIC_ROOT, "index.html")))
 
         

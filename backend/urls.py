@@ -19,5 +19,5 @@ urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 # ✅ Este re_path debe ir el último y debe excluir api/static/assets
 urlpatterns += [
-    re_path(r'^((?!api|static|assets).)*$', FrontendAppView.as_view()),
+    re_path(r'^((?!api|static|assets|favicon\.ico).)*$', FrontendAppView.as_view()),
 ]
