@@ -8,28 +8,44 @@ from datetime import timedelta, date
 @receiver(post_save, sender=Usuario)
 def crear_perfil_alumno(sender, instance, created, **kwargs):
     if created and instance.rol == 'alumno':
-        # Generar estadísticas aleatorias entre 30 y 80
-        perfil = AlumnoPerfil.objects.create(
+        AlumnoPerfil.objects.create(
             usuario=instance,
             nivel=random.randint(1, 5),
-            fisico=random.randint(40, 90),
-            pies=random.randint(40, 90),
-            defensa=random.randint(40, 90),
-            ataque=random.randint(40, 90),
-            globo=random.randint(30, 80),
-            bandeja=random.randint(30, 80),
-            vibora=random.randint(30, 80),
-            remate=random.randint(30, 80),
-            rulo=random.randint(30, 80),
-            liftado=random.randint(30, 80),
-            cortado=random.randint(30, 80),
-            paredes=random.randint(30, 80),
-            fondo_pared=random.randint(30, 80),
-            pared_fondo=random.randint(30, 80),
-            x3=random.randint(30, 80),
-            x4=random.randint(30, 80),
-            coordinacion=random.randint(30, 80),
-            cambio_de_agarre=random.randint(30, 80)
+            mano_dominante=random.choice(["Derecha", "Izquierda"]),
+            posicion=random.choice(["Reves", "Drive"]),
+
+            resistencia=random.randint(50, 100),
+            agilidad=random.randint(50, 100),
+            coordinacion=random.randint(50, 100),
+            tecnica=random.randint(50, 100),
+            velocidad=random.randint(50, 100),
+            potencia=random.randint(50, 100),
+
+            globo=random.randint(50, 100),
+            volea_natural=random.randint(50, 100),
+            volea_reves=random.randint(50, 100),
+            bandeja=random.randint(50, 100),
+            vibora=random.randint(50, 100),
+            remate=random.randint(50, 100),
+            rulo=random.randint(50, 100),
+            bote_pronto=random.randint(50, 100),
+            dejada=random.randint(50, 100),
+            chiquita=random.randint(50, 100),
+
+            ataque=random.randint(50, 100),
+            defensa=random.randint(50, 100),
+            pared=random.randint(50, 100),
+            pared_lateral=random.randint(50, 100),
+            pared_fondo=random.randint(50, 100),
+            fondo_pared=random.randint(50, 100),
+
+            cambio_agarre=random.randint(50, 100),
+            liftado=random.randint(50, 100),
+            cortado=random.randint(50, 100),
+            x3=random.randint(50, 100),
+            x4=random.randint(50, 100),
+            contrapared=random.randint(50, 100),
+            contralateral=random.randint(50, 100),
         )
 
         # Opcional: generar 8 sesiones de entrenamiento pasadas
