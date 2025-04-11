@@ -8,7 +8,7 @@ urlpatterns = [
     path("registro/", views.registro_usuario),
     path("perfil/", views.perfil_alumno),
     path("historial-entrenamientos/", views.historial_entrenamientos),
-    path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),  # Token para login
+    path("token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),  # Token para login
 ]
 
 # Rutas para servir el index.html de React cuando no se encuentre una ruta de la API
