@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# 👇 Asegura que Django detecta que estamos en Render
+export RENDER=true
+
 # 1. Instalar dependencias de Python
 pip install -r requirements.txt
 
@@ -14,7 +17,6 @@ rm -rf backend/staticfiles/*
 mkdir -p backend/staticfiles
 cp -r padel-web/dist/* backend/staticfiles/
 
-
-# 4. Migraciones y static
+# 4. Migraciones y collectstatic
 python manage.py migrate
 python manage.py collectstatic --noinput

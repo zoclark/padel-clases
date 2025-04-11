@@ -1,12 +1,9 @@
+from django.contrib import admin
+from django.urls import path, include, re_path
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from reservas.views import FrontendAppView
 from django.conf import settings
 from django.conf.urls.static import static
-from django.urls import path, include, re_path
-from django.contrib import admin
-from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
-    TokenRefreshView,
-)
-from reservas.views import FrontendAppView
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -15,10 +12,10 @@ urlpatterns = [
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
 ]
 
-# Archivos estáticos primero
+# ✅ Esto tiene que ir **antes** que el re_path
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
-# Al final del todo: Catch-all para React
+# ✅ Esto debe ir al final
 urlpatterns += [
-    re_path(r"^.*$", FrontendAppView.as_view()),
+    re_path(r'^.*$', FrontendAppView.as_view()),
 ]
