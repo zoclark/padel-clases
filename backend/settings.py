@@ -141,7 +141,8 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'backend' / 'staticfiles'  # Ajusta si usas un nombre distinto
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
-
+# Añade esta línea para que index.html quede incluido como estático en producción
+STATICFILES_DIRS = [BASE_DIR / 'backend' / 'staticfiles']
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field

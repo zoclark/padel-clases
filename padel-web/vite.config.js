@@ -1,17 +1,13 @@
-// vite.config.js
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
 
 export default defineConfig({
   plugins: [react()],
-  base: '/static/',
+  base: '/static/', // Render sirve desde /static/
   build: {
     outDir: '../backend/staticfiles',
     emptyOutDir: true,
-    rollupOptions: {
-      input: path.resolve(__dirname, 'index.html'),
-    },
   },
   resolve: {
     alias: {

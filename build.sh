@@ -1,22 +1,22 @@
 #!/usr/bin/env bash
 
-# ⚙️ Render detecta que es producción
+# Marca que estás en Render
 export RENDER=true
 
-# 1. Instalar dependencias Python
+# 1. Dependencias Python
 pip install -r requirements.txt
 
-# 2. Compilar el frontend React
+# 2. Build del frontend
 cd padel-web
 npm install
 npm run build
 cd ..
 
-# 3. Copiar el build a staticfiles
+# 3. Mover a staticfiles
 rm -rf backend/staticfiles/*
 mkdir -p backend/staticfiles
 cp -r padel-web/dist/* backend/staticfiles/
 
-# 4. Migraciones y static
+# 4. Migraciones y collectstatic
 python manage.py migrate
 python manage.py collectstatic --noinput
