@@ -15,7 +15,7 @@ cd ..
 # 3. Copiar frontend a carpeta estática
 rm -rf backend/staticfiles/*
 mkdir -p backend/staticfiles
-cp -r padel-web/dist/* backend/staticfiles/
+cp -r padel-web/dist/* backend/staticfiles/  # 👈 aquí sí usamos el prefijo porque estamos en raíz
 
 # 4. Migraciones y collectstatic
 python manage.py migrate

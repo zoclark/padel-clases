@@ -1,3 +1,5 @@
+# backend/urls.py
+
 from django.contrib import admin
 from django.urls import path, include, re_path
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
@@ -12,10 +14,10 @@ urlpatterns = [
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
 ]
 
-# Sirve archivos estáticos como /static y /assets
+# 👇 Esto permite servir archivos estáticos correctamente
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
-# Sirve React index.html para rutas que no sean api, static ni assets
+# ✅ Este re_path debe ir el último y debe excluir api/static/assets
 urlpatterns += [
     re_path(r'^((?!api|static|assets).)*$', FrontendAppView.as_view()),
 ]
