@@ -12,10 +12,10 @@ urlpatterns = [
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
 ]
 
-# ✅ Esto tiene que ir **antes** que el re_path
+# Sirve archivos estáticos como /static y /assets
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
-# ✅ Esto debe ir al final
+# Sirve React index.html para rutas que no sean api, static ni assets
 urlpatterns += [
-    re_path(r'^.*$', FrontendAppView.as_view()),
+    re_path(r'^((?!api|static|assets).)*$', FrontendAppView.as_view()),
 ]
