@@ -17,3 +17,4 @@ cp -r padel-web/dist/* backend/staticfiles/
 # 4. Migraciones y collectstatic
 python manage.py migrate
 python manage.py collectstatic --noinput
+
