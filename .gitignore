@@ -1,0 +1,20 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+
+# Node/Vite
+node_modules/
+padel-web/dist/
+
+# Archivos temporales
+*.zip
+*.tar
+*.gz
+*.log
+*.sqlite3
+*.save
+
+# Entornos
+.env*
+padel-clases-limpio.zip
