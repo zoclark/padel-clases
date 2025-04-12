@@ -19,6 +19,14 @@ services:
         fromDatabase:
           name: padel-db
           property: connectionString
+      - key: RENDER
+        value: "true"
+      - key: ENV
+        value: production
+      - key: VITE_API_BASE_URL
+        value: https://padel-clases.onrender.com/api/
+      - key: VITE_ENV
+        value: production
 
 databases:
   - name: padel-db

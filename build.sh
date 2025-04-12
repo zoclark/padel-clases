@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+
+echo ">> Mostrando todas las variables de entorno:"
+printenv
+echo ">> Fin de variables de entorno"
+
 if [ "$RENDER" = "true" ]; then
     echo "Construyendo para producción en Render..."
     # 1. Dependencias Python
