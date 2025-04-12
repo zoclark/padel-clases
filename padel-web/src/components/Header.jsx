@@ -11,7 +11,7 @@ export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const toggleMenu = () => setMenuOpen((prev) => !prev);
 
-  // Enlaces siempre visibles (dependiendo de sesión)
+  // Enlaces siempre visibles (dependiendo de la sesión)
   const fixedLinks = [
     {
       label: "Inicio",
@@ -28,7 +28,7 @@ export default function Header() {
         ]),
   ];
 
-  // Enlaces secundarios (ejemplo)
+  // Enlaces secundarios
   const menuLinks = [
     {
       label: "Entrenamiento",

@@ -12,7 +12,7 @@ export default function HeaderPanel({ subView, setSubView }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const toggleMenu = () => setMenuOpen((prev) => !prev);
 
-  // Enlaces globales, según si está o no autenticado
+  // Enlaces globales
   const fixedLinks = isAuthenticated
     ? [
         { label: "Inicio", onClick: () => navigate("/") },
@@ -25,7 +25,7 @@ export default function HeaderPanel({ subView, setSubView }) {
         { label: "Registrarse", onClick: () => navigate("/registro") },
       ];
 
-  // Enlaces “genéricos” del menú
+  // Enlaces genéricos
   const menuLinks = [
     {
       label: "Entrenamiento",
@@ -50,7 +50,7 @@ export default function HeaderPanel({ subView, setSubView }) {
     },
   ];
 
-  // Enlaces **del panel** (cambia la vista interna)
+  // Enlaces específicos del Panel
   const panelLinks = [
     { key: "atributos", label: "Atributos" },
     { key: "historial", label: "Historial" },
@@ -145,7 +145,7 @@ export default function HeaderPanel({ subView, setSubView }) {
                 </button>
               ))}
               <hr className="border-gray-700 my-2" />
-              {/* 3. Links específicos del Panel */}
+              {/* 3. Links del Panel */}
               {panelLinks.map((pl) => (
                 <button
                   key={pl.key}
