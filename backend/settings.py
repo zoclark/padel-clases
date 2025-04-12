@@ -15,41 +15,28 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Cargar primero .env.local por defecto
 env_path = BASE_DIR / ".env.local"
 
-# Miramos si .env.production tiene ENV=production y lo usamos si existe
+# Comprobamos si .env.production indica que estamos en producción
 production_env = dotenv_values(BASE_DIR / ".env.production")
-print(f"[DEBUG] Cargando env desde: {env_path}")
-print("[DEBUG] Contenido de .env.production:", production_env)
 if production_env.get("ENV", "").lower() == "production":
     env_path = BASE_DIR / ".env.production"
 
-# Finalmente, cargamos el .env seleccionado
-load_dotenv(dotenv_path=env_path)
-print(f"DEBUG tras cargar dotenv ({env_path}): {os.getenv('DEBUG')}")
-# Para garantizar que se use lo del .env (y no el sistema)
-print(f"[RENDER desde .env]: {dotenv_values(env_path).get('RENDER')}")
-print(f"[RENDER real usado]: {os.getenv('RENDER')}")
-# Imprimir los valores de las variables cargadas para verificar
-print(f"ENV: {os.getenv('ENV')}")
-print(f"DEBUG: {os.getenv('DEBUG')}")
-print(f"RENDER: {os.getenv('RENDER')}")
+# Finalmente, cargamos el .env seleccionado SIN sobreescribir variables existentes
+load_dotenv(dotenv_path=env_path, override=False)
 
 # === ENTORNO ===
 ENVIRONMENT = os.getenv("ENV", "local").lower()
-USE_STATIC_FRONTEND = ENVIRONMENT == "production"  # Usa el build estático solo en producción
+DEBUG = os.getenv("DEBUG", "false").lower() in ("true", "1", "yes")
+RENDER = os.getenv("RENDER", "false").lower() == "true"
 
+print(f"[ENV]: {ENVIRONMENT}")
+print(f"[DEBUG]: {DEBUG}")
+print(f"[RENDER]: {RENDER}")
+
+USE_STATIC_FRONTEND = ENVIRONMENT == "production"
 
 # === CONFIGURACIÓN GENERAL ===
 SECRET_KEY = os.getenv("SECRET_KEY", "clave-insegura-por-defecto")
-# DEBUG debe usar el valor cargado desde dotenv, no desde el entorno global
-DEBUG = os.environ.get("DEBUG", "False").lower() in ("true", "1", "yes")
-print(f"[DEBUG FINAL]: {DEBUG}")
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "*").split(",")
-# Imprimir el valor de DEBUG para verificar su configuración
-print(f"DEBUG: {DEBUG}")  # Esto te ayudará a ver si el valor de DEBUG se establece correctamente
-# Imprimir los valores de las variables cargadas para verificar
-print(f"ENV: {os.getenv('ENV')}")
-print(f"DEBUG: {os.getenv('DEBUG')}")
-print(f"RENDER: {os.getenv('RENDER')}")
 
 # === APLICACIONES ===
 INSTALLED_APPS = [
@@ -71,7 +58,7 @@ MIDDLEWARE = [
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
-    # "django.middleware.csrf.CsrfViewMiddleware",  # Descomentarlo si usas formularios HTML
+    # "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
@@ -110,20 +97,18 @@ TEMPLATES = [
 
 # === BASE DE DATOS ===
 if ENVIRONMENT == "production" and os.getenv("DATABASE_URL"):
-    # En producción, cuando DATABASE_URL está definida (por ejemplo, en Render)
     DATABASES = {
         'default': dj_database_url.config(conn_max_age=600, ssl_require=True)
     }
 else:
-    # Para local-local o local-production (simulando producción pero sin DATABASE_URL)
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
-            'NAME': 'padel_db',
-            'USER': 'zoclark',
-            'PASSWORD': 'no123123carlos',
-            'HOST': 'localhost',
-            'PORT': '5432',
+            'NAME': os.getenv("DB_NAME", "padel_db"),
+            'USER': os.getenv("DB_USER", "zoclark"),
+            'PASSWORD': os.getenv("DB_PASSWORD", ""),
+            'HOST': os.getenv("DB_HOST", "localhost"),
+            'PORT': os.getenv("DB_PORT", "5432"),
         }
     }
 
@@ -150,10 +135,9 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 # === CONFIGURACIÓN EXTRA ===
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'reservas.Usuario'
-CORS_ALLOW_ALL_ORIGINS = True  # apertura total
+CORS_ALLOW_ALL_ORIGINS = True
 CSRF_COOKIE_SECURE = True
 
-# Permitir acceso desde React dev o Render frontend
 CORS_ALLOWED_ORIGINS = [
     'http://127.0.0.1:8000',
     'https://padel-clases.onrender.com',
