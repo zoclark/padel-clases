@@ -9,8 +9,9 @@ export default function Header() {
   const { isAuthenticated, logout } = useAuth();
 
   const [menuOpen, setMenuOpen] = useState(false);
-  const toggleMenu = () => setMenuOpen(!menuOpen);
+  const toggleMenu = () => setMenuOpen((prev) => !prev);
 
+  // Enlaces siempre visibles (dependiendo de sesión)
   const fixedLinks = [
     {
       label: "Inicio",
@@ -27,6 +28,7 @@ export default function Header() {
         ]),
   ];
 
+  // Enlaces secundarios (ejemplo)
   const menuLinks = [
     {
       label: "Entrenamiento",
@@ -54,6 +56,7 @@ export default function Header() {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-gray-900/80 backdrop-blur-sm text-white shadow-md">
       <div className="px-6 py-4 flex justify-between items-center">
+        {/* Logo o título */}
         <div
           className="text-2xl font-bold cursor-pointer"
           onClick={() => navigate("/")}
@@ -61,37 +64,71 @@ export default function Header() {
           PadelPro
         </div>
 
-        <div className="flex items-center gap-4">
-          {fixedLinks.map((item, i) => (
-            <button key={i} onClick={item.onClick} className="hover:underline">
+        {/* -- Sección Desktop -- */}
+        <nav className="hidden md:flex items-center gap-6">
+          {fixedLinks.map((item, idx) => (
+            <button
+              key={idx}
+              onClick={item.onClick}
+              className="hover:underline"
+            >
               {item.label}
             </button>
           ))}
+          {menuLinks.map((item, idx) => (
+            <button
+              key={idx}
+              onClick={item.onClick}
+              className="hover:underline"
+            >
+              {item.label}
+            </button>
+          ))}
+        </nav>
 
-          <button onClick={toggleMenu} className="text-white p-2">
+        {/* -- Hamburguesa (versión móvil) -- */}
+        <div className="md:hidden">
+          <button onClick={toggleMenu}>
             {menuOpen ? <X size={28} /> : <MenuIcon size={28} />}
           </button>
         </div>
       </div>
 
+      {/* Menú desplegable móvil */}
       <AnimatePresence>
         {menuOpen && (
           <motion.div
-            key="dropdown"
-            initial={{ y: -5, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: -5, opacity: 0 }}
+            key="mobileMenu"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="absolute top-16 right-6 w-56 bg-gray-800/80 backdrop-blur-sm p-4 rounded shadow-md z-40"
+            className="md:hidden bg-gray-800/80 backdrop-blur-sm shadow-md"
           >
-            <div className="flex flex-col space-y-2">
-              {menuLinks.map((link, i) => (
+            <div className="flex flex-col p-4 gap-3">
+              {fixedLinks.map((item, idx) => (
                 <button
-                  key={i}
-                  onClick={link.onClick}
-                  className="text-left hover:bg-gray-700 px-3 py-2 rounded"
+                  key={idx}
+                  onClick={() => {
+                    item.onClick();
+                    setMenuOpen(false);
+                  }}
+                  className="hover:underline text-left"
                 >
-                  {link.label}
+                  {item.label}
+                </button>
+              ))}
+              <hr className="border-gray-700" />
+              {menuLinks.map((item, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => {
+                    item.onClick();
+                    setMenuOpen(false);
+                  }}
+                  className="hover:underline text-left"
+                >
+                  {item.label}
                 </button>
               ))}
             </div>
