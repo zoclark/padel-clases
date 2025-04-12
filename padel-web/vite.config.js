@@ -4,10 +4,10 @@ import path from 'path';
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
-  
+
   return {
     plugins: [react()],
-    base: mode === 'development' ? '/' : '/static/', // Base URL correcta para desarrollo
+    base: '/static/',
     build: {
       outDir: '../backend/staticfiles',
       assetsDir: 'assets',
@@ -21,5 +21,5 @@ export default defineConfig(({ mode }) => {
     define: {
       __APP_ENV__: JSON.stringify(env.VITE_ENV),
     },
-  }
+  };
 });
