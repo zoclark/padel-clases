@@ -1,40 +1,25 @@
-// src/components/Header.jsx
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Menu as MenuIcon, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import useAuth from "@/hooks/useAuth";
 
 export default function Header() {
   const navigate = useNavigate();
+  const { isAuthenticated, logout } = useAuth();
 
-  // Verifica el token para login/logout
-  const [isLogged, setIsLogged] = useState(false);
-  useEffect(() => {
-    const token = localStorage.getItem("accessToken");
-    setIsLogged(!!token);
-  }, []);
-
-  const handleLogout = () => {
-    localStorage.removeItem("accessToken");
-    setIsLogged(false);
-    navigate("/");
-  };
-
-  // Estado para el menú desplegable (Entrenamiento, Sobre Nosotros, Contacto)
   const [menuOpen, setMenuOpen] = useState(false);
   const toggleMenu = () => setMenuOpen(!menuOpen);
 
-  // Enlaces fijos en la barra: “Inicio” + según login
-  // (fuera del menú desplegable)
   const fixedLinks = [
     {
       label: "Inicio",
       onClick: () => navigate("/"),
     },
-    ...(isLogged
+    ...(isAuthenticated
       ? [
           { label: "Panel Usuario", onClick: () => navigate("/panel") },
-          { label: "Cerrar sesión", onClick: handleLogout },
+          { label: "Cerrar sesión", onClick: logout },
         ]
       : [
           { label: "Iniciar sesión", onClick: () => navigate("/login") },
@@ -42,7 +27,6 @@ export default function Header() {
         ]),
   ];
 
-  // Opciones específicas del menú desplegable
   const menuLinks = [
     {
       label: "Entrenamiento",
@@ -55,14 +39,14 @@ export default function Header() {
       label: "Sobre Nosotros",
       onClick: () => {
         setMenuOpen(false);
-        alert("Aquí iría tu sección Sobre Nosotros, o navigate('/sobre')...");
+        alert("Aquí iría tu sección Sobre Nosotros");
       },
     },
     {
       label: "Contacto",
       onClick: () => {
         setMenuOpen(false);
-        alert("Aquí iría tu sección Contacto, o navigate('/contacto')...");
+        alert("Aquí iría tu sección Contacto");
       },
     },
   ];
@@ -70,7 +54,7 @@ export default function Header() {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-gray-900/80 backdrop-blur-sm text-white shadow-md">
       <div className="px-6 py-4 flex justify-between items-center">
-        <div 
+        <div
           className="text-2xl font-bold cursor-pointer"
           onClick={() => navigate("/")}
         >
@@ -78,25 +62,18 @@ export default function Header() {
         </div>
 
         <div className="flex items-center gap-4">
-          {/* Enlaces fijos en la barra */}
           {fixedLinks.map((item, i) => (
-            <button
-              key={i}
-              onClick={item.onClick}
-              className="hover:underline"
-            >
+            <button key={i} onClick={item.onClick} className="hover:underline">
               {item.label}
             </button>
           ))}
 
-          {/* Botón para abrir/cerrar el menú desplegable */}
           <button onClick={toggleMenu} className="text-white p-2">
             {menuOpen ? <X size={28} /> : <MenuIcon size={28} />}
           </button>
         </div>
       </div>
 
-      {/* Menú desplegable (pequeño, con opacidad) */}
       <AnimatePresence>
         {menuOpen && (
           <motion.div

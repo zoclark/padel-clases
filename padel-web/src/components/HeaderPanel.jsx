@@ -1,37 +1,24 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Menu as MenuIcon, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import useAuth from "@/hooks/useAuth";
 
 export default function HeaderPanel({ subView, setSubView }) {
   const navigate = useNavigate();
+  const { isAuthenticated, logout } = useAuth();
 
-  const [isLogged, setIsLogged] = useState(false);
-  useEffect(() => {
-    const token = localStorage.getItem("accessToken");
-    setIsLogged(!!token);
-  }, []);
-
-  const handleLogout = () => {
-    localStorage.removeItem("accessToken");
-    setIsLogged(false);
-    navigate("/");
-  };
-
-  // Hamburguesa general (fija)
   const [menuOpen, setMenuOpen] = useState(false);
   const toggleMenu = () => setMenuOpen(!menuOpen);
 
-  // Hamburguesa para el submenú del panel
   const [panelOpen, setPanelOpen] = useState(false);
   const togglePanel = () => setPanelOpen(!panelOpen);
 
-  // Enlaces fijos (arriba)
-  const fixedLinks = isLogged
+  const fixedLinks = isAuthenticated
     ? [
         { label: "Inicio", onClick: () => navigate("/") },
         { label: "Panel Usuario", onClick: () => navigate("/panel") },
-        { label: "Cerrar sesión", onClick: handleLogout },
+        { label: "Cerrar sesión", onClick: logout },
       ]
     : [
         { label: "Inicio", onClick: () => navigate("/") },
@@ -39,7 +26,6 @@ export default function HeaderPanel({ subView, setSubView }) {
         { label: "Registrarse", onClick: () => navigate("/registro") },
       ];
 
-  // Opciones del menú principal hamburguesa
   const menuLinks = [
     {
       label: "Entrenamiento",
@@ -64,7 +50,6 @@ export default function HeaderPanel({ subView, setSubView }) {
     },
   ];
 
-  // Opciones del submenú del panel (Atributos, Historial, Reservas)
   const panelLinks = [
     { key: "atributos", label: "Atributos" },
     { key: "historial", label: "Historial" },
@@ -73,41 +58,37 @@ export default function HeaderPanel({ subView, setSubView }) {
 
   return (
     <header className="fixed w-full top-0 z-50 bg-gray-900/80 backdrop-blur-sm text-white shadow-md">
-      {/* Línea superior: logo + fixed links + hamburguesa */}
       <div className="px-6 py-4 flex justify-between items-center">
-        <div className="text-2xl font-bold cursor-pointer" onClick={() => navigate("/")}>
+        <div
+          className="text-2xl font-bold cursor-pointer"
+          onClick={() => navigate("/")}
+        >
           PadelPro
         </div>
 
-        {/* Vista Desktop: enlaces fijos inline */}
         <nav className="hidden md:flex gap-4 items-center">
           {fixedLinks.map((item, i) => (
             <button key={i} onClick={item.onClick} className="hover:underline">
               {item.label}
             </button>
           ))}
-          {/* Botón hamburger para el menú grande (panel, etc.) */}
           <button onClick={toggleMenu} className="text-white p-2">
             {menuOpen ? <X size={24} /> : <MenuIcon size={24} />}
           </button>
         </nav>
 
-        {/* Vista Móvil: mostrar siempre los enlaces fijos? 
-            o cambiamos a hamburguesa también? */}
         <div className="flex md:hidden gap-2">
           {fixedLinks.length > 0 && (
             <button onClick={fixedLinks[0].onClick} className="hover:underline">
               {fixedLinks[0].label}
             </button>
           )}
-          {/* Hamburguesa principal */}
           <button onClick={toggleMenu}>
             {menuOpen ? <X size={24} /> : <MenuIcon size={24} />}
           </button>
         </div>
       </div>
 
-      {/* Menú hamburguesa principal (arriba) */}
       <AnimatePresence>
         {menuOpen && (
           <motion.div
@@ -118,7 +99,6 @@ export default function HeaderPanel({ subView, setSubView }) {
             transition={{ duration: 0.3 }}
             className="md:hidden bg-gray-800/80 backdrop-blur p-4"
           >
-            {/* Enlaces fijos (excepto el primero si ya lo mostramos) */}
             <div className="flex flex-col gap-2 mb-2">
               {fixedLinks.map((item, i) => (
                 <button
@@ -133,7 +113,6 @@ export default function HeaderPanel({ subView, setSubView }) {
                 </button>
               ))}
             </div>
-            {/* menuLinks (Entrenamiento, Contacto...) */}
             <div className="border-t border-gray-700 pt-2 flex flex-col gap-2">
               {menuLinks.map((link, i) => (
                 <button
@@ -149,9 +128,7 @@ export default function HeaderPanel({ subView, setSubView }) {
         )}
       </AnimatePresence>
 
-      {/* Submenú del panel: 2da línea */}
       <div className="border-t border-gray-700 px-6 py-2 flex justify-between items-center md:items-start">
-        {/* Vista Desktop: submenú inline */}
         <div className="hidden md:flex gap-6">
           {panelLinks.map((pl) => (
             <button
@@ -166,9 +143,8 @@ export default function HeaderPanel({ subView, setSubView }) {
           ))}
         </div>
 
-        {/* Vista Móvil: un nuevo hamburger para submenú del panel */}
         <div className="md:hidden flex flex-col items-end w-full">
-          <button onClick={() => setPanelOpen(!panelOpen)} className="text-white p-2 self-end">
+          <button onClick={togglePanel} className="text-white p-2 self-end">
             {panelOpen ? <X size={24} /> : <MenuIcon size={24} />}
           </button>
           <AnimatePresence>

@@ -8,8 +8,6 @@ from .models import TrainingSession
 from .serializers import TrainingSessionSerializer
 
 
-
-
 @api_view(["POST"])
 def registro_usuario(request):
     datos = request.data
@@ -25,11 +23,11 @@ def registro_usuario(request):
         )
         print("✅ Usuario creado desde API:", usuario.username)
         return Response({"mensaje": f"Usuario '{usuario.username}' creado correctamente"}, status=201)
-    
+
     except Exception as e:
         print("❌ Error en el registro:", e)
         return Response({"error": str(e)}, status=500)
-    
+
 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -39,10 +37,9 @@ from .models import AlumnoPerfil
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def perfil_alumno(request):
-    # Solo permitimos acceso si el usuario tiene rol "alumno"
     if request.user.rol != "alumno":
         return Response({"error": "Solo disponible para usuarios alumnos"}, status=403)
-    
+
     try:
         perfil = AlumnoPerfil.objects.get(usuario=request.user)
         serializer = AlumnoPerfilSerializer(perfil)
@@ -57,11 +54,10 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from .models import TrainingSession
 from .serializers import TrainingSessionSerializer
-  
+
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def historial_entrenamientos(request):
-    # Generar datos aleatorios si no existen (modo demo o prueba)
     alumno = request.user
 
     if not TrainingSession.objects.filter(alumno=alumno).exists():
@@ -83,6 +79,20 @@ def historial_entrenamientos(request):
     return Response(serializer.data)
 
 
+# ========================
+# FRONTENDAPPVIEW CORREGIDO
+# ========================
+from django.views.generic import View
+from django.http import HttpResponse, HttpResponseServerError
+from django.conf import settings
+import os
+import traceback
+
+
+from django.views.generic import View
+from django.http import HttpResponse, HttpResponseServerError
+from django.conf import settings
+import os
 
 from django.views.generic import View
 from django.http import HttpResponse, HttpResponseServerError
@@ -90,14 +100,12 @@ import os
 from django.conf import settings
 
 class FrontendAppView(View):
-    def get(self, request):
-        index_path = os.path.join(settings.STATIC_ROOT, "index.html")
-        if os.path.exists(index_path):
+    def get(self, request, *args, **kwargs):
+        index_path = os.path.join(settings.STATICFILES_DIRS[0], "index.html")
+        try:
             with open(index_path, encoding="utf-8") as f:
                 return HttpResponse(f.read())
-        return HttpResponseServerError("index.html not found. Did you run the build and copy steps?")
-
-print("STATIC_ROOT:", settings.STATIC_ROOT)
-print("INDEX EXISTS:", os.path.exists(os.path.join(settings.STATIC_ROOT, "index.html")))
-
-        
+        except FileNotFoundError:
+            return HttpResponseServerError(f"❌ index.html not found<br>Expected at: {index_path}")
+        except Exception as e:
+            return HttpResponseServerError(f"❌ Error loading index.html:<br>{e}")

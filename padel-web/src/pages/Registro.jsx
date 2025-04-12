@@ -25,7 +25,7 @@ export default function Registro() {
     setError("");
     try {
       // Envía datos al endpoint de registro que definiste en Django
-      await api.post("/registro/", formData);
+      await api.post("registro/", formData);
       // Si todo OK, redirige al login o panel
       navigate("/login");
     } catch (err) {
