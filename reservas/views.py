@@ -101,21 +101,12 @@ from django.conf import settings
 
 class FrontendAppView(View):
     def get(self, request, *args, **kwargs):
-        # Obtener el valor de la variable de entorno 'DEBUG'
-        debug_value = os.getenv("DEBUG", "False").lower()  # 'DEBUG' debería ser True o False en el .env
-        
-        # Verificar si estamos en modo debug o producción
-        is_debug = debug_value in ("true", "1", "yes")  # Si DEBUG es True, estamos en desarrollo (local)
-        
-        # Dependiendo de si estamos en modo debug o no, asignamos la ruta correcta del archivo index.html
-        if is_debug:
-            # En local (modo desarrollo), usamos STATICFILES_DIRS
-            index_path = os.path.join(settings.STATICFILES_DIRS[0], "index.html")
-        else:
-            # En producción, usamos STATIC_ROOT
-            index_path = os.path.join(settings.STATIC_ROOT, "index.html")
-        
         try:
+            if settings.DEBUG and settings.STATICFILES_DIRS:
+                index_path = os.path.join(settings.STATICFILES_DIRS[0], "index.html")
+            else:
+                index_path = os.path.join(settings.STATIC_ROOT, "index.html")
+
             with open(index_path, encoding="utf-8") as f:
                 return HttpResponse(f.read())
         except FileNotFoundError:
