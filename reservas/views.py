@@ -101,15 +101,25 @@ from django.conf import settings
 
 class FrontendAppView(View):
     def get(self, request, *args, **kwargs):
-        try:
-            if settings.DEBUG and settings.STATICFILES_DIRS:
-                index_path = os.path.join(settings.STATICFILES_DIRS[0], "index.html")
-            else:
-                index_path = os.path.join(settings.STATIC_ROOT, "index.html")
+        # Leer el valor DEBUG (True en local, False en producción)
+        debug_value = os.getenv("DEBUG", "False").lower()
+        is_debug = debug_value in ("true", "1", "yes")
 
+        # Determinar ruta del index.html
+        if is_debug and settings.STATICFILES_DIRS:
+            index_path = os.path.join(settings.STATICFILES_DIRS[0], "index.html")
+        else:
+            index_path = os.path.join(settings.STATIC_ROOT, "index.html")
+
+        print(f"📄 Sirviendo index desde: {index_path}")
+
+        try:
             with open(index_path, encoding="utf-8") as f:
                 return HttpResponse(f.read())
         except FileNotFoundError:
-            return HttpResponseServerError(f"❌ index.html not found<br>Expected at: {index_path}")
+            print(f"❌ index.html no encontrado en {index_path}")
+            return HttpResponseServerError(f"❌ index.html no encontrado<br>Esperado en: {index_path}")
         except Exception as e:
-            return HttpResponseServerError(f"❌ Error loading index.html:<br>{e}")
+            print("❌ Error inesperado al cargar index.html:", e)
+            traceback.print_exc()
+            return HttpResponseServerError(f"❌ Error cargando index.html:<br>{e}")

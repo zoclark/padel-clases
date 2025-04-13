@@ -1,7 +1,9 @@
 from django.contrib import admin
-from django.urls import path, include
+from django.contrib import admin
+from django.urls import path, include, re_path
 from django.conf import settings
 from django.conf.urls.static import static
+from reservas.views import FrontendAppView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -9,6 +11,10 @@ urlpatterns = [
 ]
 
 # Solo sirve archivos estáticos localmente si DEBUG está activado
-if settings.DEBUG:
-    if settings.STATICFILES_DIRS:
-        urlpatterns += static(settings.STATIC_URL, document_root=settings.STATICFILES_DIRS[0])
+if settings.DEBUG and settings.STATICFILES_DIRS:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATICFILES_DIRS[0])
+
+# Captura cualquier otra ruta (SPA) y devuelve index.html
+urlpatterns += [
+    re_path(r"^.*$", FrontendAppView.as_view(), name="frontend"),
+]
