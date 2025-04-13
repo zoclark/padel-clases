@@ -5,7 +5,7 @@ echo ">> Mostrando todas las variables de entorno:"
 printenv
 echo ">> Fin de variables de entorno"
 
-if [ "$RENDER" = "true" ]; then
+if [ "$RENDER" = "True" ]; then
     echo "Construyendo para producción en Render..."
     # 1. Dependencias Python
     pip install -r requirements.txt
@@ -17,9 +17,9 @@ if [ "$RENDER" = "true" ]; then
     cd ..
 
     # 3. Mover a staticfiles
-    rm -rf backend/staticfiles/*
+    #rm -rf backend/staticfiles/*
     mkdir -p backend/staticfiles
-    cp -r padel-web/dist/* backend/staticfiles/
+    cp -a padel-web/dist/. backend/staticfiles/
 
     # 4. Migraciones y collectstatic
     python manage.py migrate
