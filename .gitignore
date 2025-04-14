@@ -1,21 +1,91 @@
-# Python
+##############################
+# Archivos del sistema / IDEs
+##############################
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+
+##############################
+# Entornos virtuales Python
+##############################
 venv/
+.env
+.env.*
+!.env.example
+!.env.production.example
+
+##############################
+# Archivos de Python
+##############################
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+*.pyo
 
-# Node/Vite
-node_modules/
-padel-web/dist/
-
-# Archivos temporales
-*.zip
-*.tar
-*.gz
+##############################
+# Django
+##############################
+db.sqlite3
+media/
+mediafiles/
+staticfiles/
+static_root/
 *.log
-*.sqlite3
+*.pot
+*.pyc
+*.mo
+
+# Migraciones compiladas
+**/migrations/__pycache__/
+**/migrations/*.pyc
+
+##############################
+# Node.js / React / Vite
+##############################
+node_modules/
+dist/
+.vite/
+*.tsbuildinfo
+
+# Archivos de lock (puedes versionarlos si usas uno solo)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+##############################
+# Archivos temporales / backup
+##############################
+*.swp
+*.bak
+*.tmp
+*.old
 *.save
 
-# Entornos
-.env*
-padel-clases-limpio.zip
-padel-clases-limpio.zip
+##############################
+# Archivos de Render / despliegue
+##############################
+render-build/
+*.render-build/
+render.yaml.save
+
+##############################
+# Otros
+##############################
+*.sqlite3
+clean-clone/
+
+
+##############################
+# Archivos comprimidos
+##############################
+*.zip
+*.rar
+*.7z
+*.tar
+*.tar.gz
+*.tgz
+*.gz
+*.bz2
+*.xz
