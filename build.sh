@@ -17,8 +17,10 @@ if [ "$RENDER" = "True" ]; then
     cd ..
 
     # 3. Mover a staticfiles
+    # 3. Limpiar y mover a staticfiles
+    rm -rf backend/staticfiles/*
     mkdir -p backend/staticfiles
-    cp -a padel-web/dist/. backend/staticfiles/ 
+    cp -a padel-web/dist/. backend/staticfiles/
     echo "<!-- build: $(date +%s) -->" >> backend/staticfiles/index.html
 
     # ✅ Mostrar qué contiene staticfiles después del copy
