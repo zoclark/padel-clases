@@ -4,8 +4,10 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
+  
   theme: {
     extend: {
+      // Tus animaciones personalizadas
       animation: {
         'gradient-x': 'gradientX 6s ease infinite',
       },
@@ -15,7 +17,22 @@ export default {
           '50%': { 'background-position': '100% 50%' },
         },
       },
+
+      // Nuevas extensiones
+      colors: {
+        primary: '#1F4E79',
+        'primary-dark': '#163E60',
+        'background-light': '#E8E6E0',
+        danger: '#DC2626',
+      },
+
+      fontFamily: {
+        serif: ["'Playfair Display'", "Georgia", "serif"],
+      },
+      screens: {
+        'menu': '920px',
+      },
     },
   },
-  plugins: [],
-}
+  plugins: [require("@tailwindcss/typography")],
+};
