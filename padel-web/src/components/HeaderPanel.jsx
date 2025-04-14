@@ -1,3 +1,4 @@
+// src/components/HeaderPanel.jsx
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Menu as MenuIcon, X } from "lucide-react";
@@ -18,7 +19,7 @@ export default function HeaderPanel({ subView, setSubView }) {
       ]
     : [
         { label: "Inicio", onClick: () => navigate("/") },
-        { label: "Iniciar sesión", onClick: () => navigate("/login"), className: "header-link" },
+        { label: "Iniciar sesión", onClick: () => navigate("/login"), className: "text-lg font-semibold hover:text-blue-600 transition-all" },
         { label: "Registrarse", onClick: () => navigate("/registro"), className: "header-auth" },
       ];
 
@@ -53,49 +54,36 @@ export default function HeaderPanel({ subView, setSubView }) {
   ];
 
   return (
-    <header className="fixed w-full top-0 z-50 bg-[#E8E6E0]/95 text-black shadow-md">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-[#D6D4CE]/95 text-black shadow-md">
       <div className="px-4 sm:px-6 py-3 flex justify-between items-center gap-6">
-        {/* Logo */}
-        <div
-          className="flex items-center gap-2 cursor-pointer"
-          onClick={() => navigate("/")}
-        >
-          <img
-            src={Logo}
-            alt="Metrik Pádel"
-            className="h-12 w-12 bg-white p-1 rounded-full shadow-sm"
-          />
-          <span className="text-xl font-serif font-semibold tracking-tight text-blue-700">
-            Metrik Pádel
-          </span>
+        {/* Logo grande */}
+        <div className="relative h-20 w-20 flex-shrink-0 cursor-pointer" onClick={() => navigate("/")}>
+          <img src={Logo} alt="Metrik Pádel" className="absolute top-1/2 left-0 -translate-y-1/2 h-24 w-auto" />
         </div>
 
-        {/* Navegación desktop */}
+        {/* Navegación Desktop */}
         <nav className="hidden xl:flex items-center gap-6 flex-1 justify-center">
           {[...fixedLinks, ...menuLinks].map((item, i) => (
             <button
               key={i}
               onClick={item.onClick}
-              className={item.className || "header-link"}
+              className={item.className || "text-lg font-semibold hover:text-blue-600 transition-all"}
             >
               {item.label}
             </button>
           ))}
         </nav>
 
-        {/* Cerrar sesión si autenticado */}
+        {/* Logout Desktop */}
         <div className="hidden xl:flex items-center gap-4">
           {isAuthenticated && (
-            <button
-              onClick={logout}
-              className="header-logout"
-            >
+            <button onClick={logout} className="header-logout">
               Cerrar sesión
             </button>
           )}
         </div>
 
-        {/* Hamburguesa móvil */}
+        {/* Menú móvil */}
         <div className="xl:hidden">
           <button onClick={toggleMenu}>
             {menuOpen ? <X size={24} /> : <MenuIcon size={24} />}
@@ -103,14 +91,14 @@ export default function HeaderPanel({ subView, setSubView }) {
         </div>
       </div>
 
-      {/* Subnavegación del panel */}
+      {/* Submenú del Panel */}
       <div className="hidden xl:flex border-t border-gray-300 px-6 py-2 gap-6">
         {panelLinks.map((pl) => (
           <button
             key={pl.key}
             onClick={() => setSubView(pl.key)}
-            className={`capitalize header-link ${
-              subView === pl.key ? "font-bold underline text-blue-600" : ""
+            className={`capitalize text-lg font-semibold hover:text-blue-600 transition-all ${
+              subView === pl.key ? "font-bold underline text-blue-700" : ""
             }`}
           >
             {pl.label}
@@ -118,7 +106,7 @@ export default function HeaderPanel({ subView, setSubView }) {
         ))}
       </div>
 
-      {/* Menú móvil */}
+      {/* Menú móvil desplegable */}
       <AnimatePresence>
         {menuOpen && (
           <motion.div
@@ -137,7 +125,7 @@ export default function HeaderPanel({ subView, setSubView }) {
                     item.onClick();
                     setMenuOpen(false);
                   }}
-                  className={item.className || "text-left header-link"}
+                  className={item.className || "text-left text-lg font-semibold hover:text-blue-600 transition-all"}
                 >
                   {item.label}
                 </button>
@@ -150,10 +138,8 @@ export default function HeaderPanel({ subView, setSubView }) {
                     setSubView(pl.key);
                     setMenuOpen(false);
                   }}
-                  className={`text-left capitalize header-link ${
-                    subView === pl.key
-                      ? "font-bold underline text-blue-600"
-                      : ""
+                  className={`text-left capitalize text-lg font-semibold hover:text-blue-600 transition-all ${
+                    subView === pl.key ? "font-bold underline text-blue-700" : ""
                   }`}
                 >
                   {pl.label}

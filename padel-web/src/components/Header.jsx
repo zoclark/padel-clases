@@ -1,3 +1,4 @@
+// src/components/Header.jsx
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Menu as MenuIcon, X } from "lucide-react";
@@ -8,7 +9,6 @@ import Logo from "@/assets/MetrikPadel_Logo.svg";
 export default function Header() {
   const navigate = useNavigate();
   const { isAuthenticated, logout } = useAuth();
-
   const [menuOpen, setMenuOpen] = useState(false);
   const toggleMenu = () => setMenuOpen((prev) => !prev);
 
@@ -21,48 +21,45 @@ export default function Header() {
 
   const authLinks = isAuthenticated
     ? [
-        { label: "Panel Usuario", onClick: () => navigate("/panel"), className: "header-link" },
+        { label: "Panel Usuario", onClick: () => navigate("/panel"), className: "text-lg font-semibold hover:text-blue-600 transition-all" },
         { label: "Cerrar sesión", onClick: logout, className: "header-logout" },
       ]
     : [
-        { label: "Iniciar sesión", onClick: () => navigate("/login"), className: "header-link" },
+        { label: "Iniciar sesión", onClick: () => navigate("/login"), className: "text-lg font-semibold hover:text-blue-600 transition-all" },
         { label: "Registrarse", onClick: () => navigate("/registro"), className: "header-auth" },
       ];
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-[#E8E6E0]/95 text-black shadow-md">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-[#D6D4CE]/95 text-black shadow-md">
       <div className="flex items-center justify-between gap-6 px-0 sm:px-4 md:px-6 py-3">
-        {/* LOGO ÚNICO */}
-        <div
-          className="pl-4 cursor-pointer flex-shrink-0"
-          onClick={() => navigate("/")}
-        >
-          <img src={Logo} alt="Metrik Pádel" className="h-20 w-auto" />
+        {/* Logo grande sin texto */}
+        <div className="relative h-20 w-20 flex-shrink-0 cursor-pointer" onClick={() => navigate("/")}>
+          <img src={Logo} alt="Metrik Pádel" className="absolute top-1/2 left-0 -translate-y-1/2 h-24 w-auto" />
         </div>
 
-        {/* ENLACES DESKTOP */}
+        {/* Enlaces Desktop */}
         <nav className="hidden xl:flex flex-1 justify-center items-center gap-6">
           {mainLinks.map((item, idx) => (
-            <button key={idx} onClick={item.onClick} className="header-link">
+            <button
+              key={idx}
+              onClick={item.onClick}
+              className="text-lg font-semibold hover:text-blue-600 transition-all"
+            >
               {item.label}
             </button>
           ))}
         </nav>
 
-        {/* AUTENTICACIÓN */}
+        {/* Enlaces Auth */}
         <div className="hidden xl:flex items-center gap-3 pr-4">
           {authLinks.map((item, idx) => (
-            <button
-              key={idx}
-              onClick={item.onClick}
-              className={item.className}
-            >
+            <button key={idx} onClick={item.onClick} className={item.className}>
               {item.label}
             </button>
           ))}
         </div>
 
-        {/* HAMBURGUESA */}
+        {/* Menú Móvil */}
         <div className="xl:hidden pr-4">
           <button onClick={toggleMenu}>
             {menuOpen ? <X size={28} /> : <MenuIcon size={28} />}
@@ -70,7 +67,7 @@ export default function Header() {
         </div>
       </div>
 
-      {/* MENÚ MÓVIL */}
+      {/* Menú Móvil desplegable */}
       <AnimatePresence>
         {menuOpen && (
           <motion.div
@@ -89,7 +86,7 @@ export default function Header() {
                     item.onClick();
                     setMenuOpen(false);
                   }}
-                  className={item.className || "header-link text-left"}
+                  className={item.className || "text-left text-lg font-semibold hover:text-blue-600 transition-all"}
                 >
                   {item.label}
                 </button>
