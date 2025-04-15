@@ -2,7 +2,7 @@ services:
   - type: web
     name: padel-clases
     env: python
-    plan: free
+    plan: starter
     buildCommand: "./build.sh"
     startCommand: "gunicorn backend.wsgi:application"
     staticPublishPath: staticfiles
