@@ -145,12 +145,20 @@ export default function Landing() {
       </section>
 
       <FadeSection>
-        <div ref={infoRef} id="sobre" className="max-w-6xl mx-auto grid md:grid-cols-2 gap-12 items-center">
-          <img src={tecnologiaImg} alt="Tecnología" className="rounded-lg shadow-xl hidden md:block" />
+        <div
+          ref={infoRef}
+          id="sobre"
+          className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 items-center"
+        >
+          <img
+            src={tecnologiaImg}
+            alt="Tecnología"
+            className="w-full rounded-lg shadow-xl object-contain"
+          />
           <div>
             <h2 className="text-3xl font-bold mb-4">Único y Personalizado</h2>
             <p className="text-lg text-gray-700">
-            Nos adaptamos a cada alumno de forma individualizada. 
+              Nos adaptamos a cada alumno de forma individualizada.
             </p>
           </div>
         </div>
@@ -205,30 +213,30 @@ export default function Landing() {
         </div>
       </FadeSection>
 
-      <div className="fixed bottom-4 right-4 flex flex-col z-50">
-  <a
-    href="https://wa.me/34652069367"
-    target="_blank"
-    rel="noopener noreferrer"
-  >
-    <img
-      src={whatsappIcon}
-      alt="WhatsApp"
-      className="w-12 object-contain transition-transform duration-200 hover:scale-110"
-    />
-  </a>
-  <a
-    href="https://instagram.com"
-    target="_blank"
-    rel="noopener noreferrer"
-  >
-    <img
-      src={instagramIcon}
-      alt="Instagram"
-      className="w-12 object-contain p-2 transition-transform duration-200 hover:scale-110"
-    />
-  </a>
-</div>
+      <div className="fixed bottom-4 right-4 flex flex-col gap-1 z-50">
+        <a
+          href="https://wa.me/34652069367"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <img
+            src={whatsappIcon}
+            alt="WhatsApp"
+            className="w-12 object-contain transition-transform duration-200 hover:scale-110 hover:-translate-y-1"
+          />
+        </a>
+        <a
+          href="https://instagram.com"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <img
+            src={instagramIcon}
+            alt="Instagram"
+            className="w-12 object-contain p-2 transition-transform duration-200 hover:scale-110 hover:-translate-y-1"
+          />
+        </a>
+      </div>
 
       <motion.footer
         animate={{ paddingTop: footerPadding, paddingBottom: footerPadding }}
