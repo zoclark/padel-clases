@@ -107,7 +107,8 @@ export default function Landing() {
               <div className="pointer-events-auto">
                 <Button
                   onClick={scrollToInfo}
-                  className="group mt-4 px-6 py-3 bg-white text-neutral-900 font-semibold border border-gray-300 rounded shadow-md hover:bg-blue-600 hover:text-white transition-colors duration-300"
+                  variant="secondary"
+                  className="group mt-4 px-6 py-3 font-semibold border border-gray-300 rounded shadow-md hover:bg-blue-600 hover:text-white transition-colors duration-300"
                 >
                   <span className="relative z-10">Más información</span>
                 </Button>
