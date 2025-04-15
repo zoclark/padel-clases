@@ -5,13 +5,8 @@ export default {
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   safelist: [
-    "bg-white",
-    "text-black",
-    "hover:bg-gray-200",
-    "shadow-md",
-    "rounded",
-    "border",
-    "border-gray-300"
+    'text-black',
+    'text-neutral-900',
   ],
   theme: {
     extend: {
