@@ -5,11 +5,12 @@ import {
   useInView,
 } from "framer-motion";
 import { Button } from "@/components/ui/Button";
-import { ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronDown, Quote } from "lucide-react";
 import Header from "@/components/Header";
 
 import whatsappIcon from "@/assets/social/whatsapp.png";
 import instagramIcon from "@/assets/social/instagram.png";
+import tecnologiaImg from "@/assets/tecnologia.png";
 
 import slide1 from "@/assets/slide1.png";
 import slide2 from "@/assets/slide2.png";
@@ -38,7 +39,7 @@ const FadeSection = ({ children }) => {
       initial={{ opacity: 0, y: 30 }}
       animate={controls}
       transition={{ duration: 0.8, ease: "easeOut" }}
-      className="px-6 py-16 bg-gray-100 space-y-12"
+      className="px-6 py-16 space-y-12"
     >
       {children}
     </motion.section>
@@ -144,17 +145,19 @@ export default function Landing() {
       </section>
 
       <FadeSection>
-        <div ref={infoRef} id="sobre" className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl font-bold mb-4">Entrena con visión y tecnología</h2>
-          <p className="text-lg text-gray-700">
-            Nuestro enfoque combina biomecánica, análisis técnico y progresión personalizada para cada jugador.
-            Visualiza tu evolución, accede a estadísticas y entrena como los profesionales.
-          </p>
+        <div ref={infoRef} id="sobre" className="max-w-6xl mx-auto grid md:grid-cols-2 gap-12 items-center">
+          <img src={tecnologiaImg} alt="Tecnología" className="rounded-lg shadow-xl hidden md:block" />
+          <div>
+            <h2 className="text-3xl font-bold mb-4">Único y Personalizado</h2>
+            <p className="text-lg text-gray-700">
+            Nos adaptamos a cada alumno de forma individualizada. 
+            </p>
+          </div>
         </div>
       </FadeSection>
 
       <FadeSection>
-        <div className="max-w-4xl mx-auto text-center">
+        <div className="max-w-4xl mx-auto text-center bg-gray-50 p-8 rounded-xl shadow-md">
           <h2 className="text-2xl font-bold mb-3">Más que una academia</h2>
           <p className="text-gray-700">
             Nos implicamos en tu evolución real. Aquí no vienes a hacer ejercicios al azar, vienes a mejorar.
@@ -172,9 +175,10 @@ export default function Landing() {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: i * 0.2 }}
-                className="bg-white p-6 rounded-lg shadow"
+                className="bg-blue-50 p-6 rounded-xl shadow-md text-center relative"
               >
-                <p className="text-gray-600 italic">“{text}”</p>
+                <Quote className="text-blue-400 w-6 h-6 mx-auto mb-2" />
+                <p className="text-gray-600 italic">{text}</p>
                 <p className="mt-4 font-semibold text-blue-700">{name}</p>
               </motion.div>
             ))}
@@ -201,24 +205,30 @@ export default function Landing() {
         </div>
       </FadeSection>
 
-      <div className="fixed bottom-4 right-4 flex flex-col gap-2 z-50">
-        <a
-          href="https://wa.me/34652069367"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center justify-center w-10 h-10 bg-green-500 hover:bg-green-600 rounded-full shadow-lg"
-        >
-          <img src={whatsappIcon} alt="WhatsApp" className="w-full h-full object-contain" />
-        </a>
-        <a
-          href="https://instagram.com"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center justify-center w-10 h-10 bg-pink-600 hover:bg-pink-700 rounded-full shadow-lg"
-        >
-          <img src={instagramIcon} alt="Instagram" className="w-full h-full object-contain" />
-        </a>
-      </div>
+      <div className="fixed bottom-4 right-4 flex flex-col z-50">
+  <a
+    href="https://wa.me/34652069367"
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    <img
+      src={whatsappIcon}
+      alt="WhatsApp"
+      className="w-12 object-contain transition-transform duration-200 hover:scale-110"
+    />
+  </a>
+  <a
+    href="https://instagram.com"
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    <img
+      src={instagramIcon}
+      alt="Instagram"
+      className="w-12 object-contain p-2 transition-transform duration-200 hover:scale-110"
+    />
+  </a>
+</div>
 
       <motion.footer
         animate={{ paddingTop: footerPadding, paddingBottom: footerPadding }}
