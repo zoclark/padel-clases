@@ -32,9 +32,16 @@ export default function Header() {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-[#0f172a]/90 text-white shadow-lg backdrop-blur">
       <div className="flex items-center justify-between gap-6 px-0 sm:px-4 md:px-6 py-3">
-        {/* Logo grande sin texto */}
-        <div className="relative h-20 w-20 flex-shrink-0 cursor-pointer" onClick={() => navigate("/")}>
-          <img src={Logo} alt="Metrik Pádel" className="absolute top-1/2 left-0 -translate-y-1/2 h-24 w-auto" />
+        {/* Logo con padding izquierdo solo en móvil */}
+        <div
+          className="relative h-20 w-20 flex-shrink-0 cursor-pointer pl-4 sm:pl-0"
+          onClick={() => navigate("/")}
+        >
+          <img
+            src={Logo}
+            alt="Metrik Pádel"
+            className="absolute top-1/2 left-0 -translate-y-1/2 h-24 w-auto"
+          />
         </div>
 
         {/* Enlaces Desktop */}
@@ -59,8 +66,8 @@ export default function Header() {
           ))}
         </div>
 
-        {/* Menú Móvil */}
-        <div className="xl:hidden pr-4">
+        {/* Menú Móvil con padding horizontal corregido */}
+        <div className="xl:hidden px-4 sm:px-0">
           <button onClick={toggleMenu}>
             {menuOpen ? <X size={28} /> : <MenuIcon size={28} />}
           </button>

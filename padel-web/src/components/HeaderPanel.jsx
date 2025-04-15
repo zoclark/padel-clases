@@ -19,8 +19,16 @@ export default function HeaderPanel({ subView, setSubView }) {
       ]
     : [
         { label: "Inicio", onClick: () => navigate("/") },
-        { label: "Iniciar sesión", onClick: () => navigate("/login"), className: "text-lg font-semibold hover:text-blue-600 transition-all" },
-        { label: "Registrarse", onClick: () => navigate("/registro"), className: "header-auth" },
+        {
+          label: "Iniciar sesión",
+          onClick: () => navigate("/login"),
+          className: "text-lg font-semibold hover:text-blue-600 transition-all",
+        },
+        {
+          label: "Registrarse",
+          onClick: () => navigate("/registro"),
+          className: "header-auth",
+        },
       ];
 
   const menuLinks = [
@@ -56,9 +64,16 @@ export default function HeaderPanel({ subView, setSubView }) {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-[#0f172a]/90 text-white shadow-lg backdrop-blur">
       <div className="px-4 sm:px-6 py-3 flex justify-between items-center gap-6">
-        {/* Logo grande */}
-        <div className="relative h-20 w-20 flex-shrink-0 cursor-pointer" onClick={() => navigate("/")}>
-          <img src={Logo} alt="Metrik Pádel" className="absolute top-1/2 left-0 -translate-y-1/2 h-24 w-auto" />
+        {/* Logo con padding izquierdo solo en móvil */}
+        <div
+          className="relative h-20 w-20 flex-shrink-0 cursor-pointer pl-4 sm:pl-0"
+          onClick={() => navigate("/")}
+        >
+          <img
+            src={Logo}
+            alt="Metrik Pádel"
+            className="absolute top-1/2 left-0 -translate-y-1/2 h-24 w-auto"
+          />
         </div>
 
         {/* Navegación Desktop */}

@@ -107,7 +107,7 @@ export default function Landing() {
               <div className="pointer-events-auto">
                 <Button
                   onClick={scrollToInfo}
-                  className="mt-4 px-6 py-3 bg-white text-black font-semibold hover:bg-gray-200 shadow-md rounded"
+                  className="mt-4 px-6 py-3 bg-white text-neutral-900 font-semibold hover:bg-gray-200 shadow-md rounded border border-gray-300"
                 >
                   Más información
                 </Button>
