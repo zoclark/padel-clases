@@ -14,7 +14,7 @@ services:
       - key: SECRET_KEY
         generateValue: true
       - key: ALLOWED_HOSTS
-        value: padel-clases.onrender.com
+        value: metrikpadel.com,www.metrikpadel.com,padel-clases.onrender.com
       - key: DATABASE_URL
         fromDatabase:
           name: padel-db
@@ -24,7 +24,7 @@ services:
       - key: ENV
         value: production
       - key: VITE_API_BASE_URL
-        value: https://padel-clases.onrender.com/api/
+        value: https://www.metrikpadel.com/api/
       - key: VITE_ENV
         value: production
 

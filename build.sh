@@ -5,8 +5,13 @@ echo ">> Mostrando todas las variables de entorno:"
 printenv
 echo ">> Fin de variables de entorno"
 
-if [ "$RENDER" = "True" ]; then
+if [ "${RENDER,,}" = "true" ]; then
     echo "Construyendo para producción en Render..."
+
+    # 🔥 Eliminar .env locales del frontend
+    echo "Eliminando .env locales en padel-web..."
+    rm -f padel-web/.env*
+
     # 1. Dependencias Python
     pip install -r requirements.txt
 

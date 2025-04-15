@@ -10,11 +10,9 @@ desktop.ini
 ##############################
 # Entornos virtuales Python
 ##############################
-venv/
-.env
-.env.*
-!.env.example
-!.env.production.example
+
+# Variables de entorno locales
+padel-web/.env*
 
 ##############################
 # Archivos de Python
@@ -24,22 +22,7 @@ __pycache__/
 *$py.class
 *.pyo
 
-##############################
-# Django
-##############################
-db.sqlite3
-media/
-mediafiles/
-staticfiles/
-static_root/
-*.log
-*.pot
-*.pyc
-*.mo
 
-# Migraciones compiladas
-**/migrations/__pycache__/
-**/migrations/*.pyc
 
 ##############################
 # Node.js / React / Vite

@@ -12,16 +12,23 @@ from dotenv import load_dotenv, dotenv_values
 # BASE_DIR
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Cargar primero .env.local por defecto
-env_path = BASE_DIR / ".env.local"
+# === CARGA DE VARIABLES DE ENTORNO ===
 
-# Comprobamos si .env.production indica que estamos en producción
-production_env = dotenv_values(BASE_DIR / ".env.production")
-if production_env.get("ENV", "").lower() == "production":
-    env_path = BASE_DIR / ".env.production"
+# Detectar entorno de ejecución
+ENV = os.getenv("ENV", "local").lower()
+RENDER = os.getenv("RENDER", "false").lower() == "true"
 
-# Finalmente, cargamos el .env seleccionado SIN sobreescribir variables existentes
-load_dotenv(dotenv_path=env_path, override=False)
+# Decidir qué archivo .env cargar (solo fuera de Render)
+env_path = None
+
+if not RENDER:
+    if ENV == "production" and (BASE_DIR / ".env.production").exists():
+        env_path = BASE_DIR / ".env.production"
+    elif (BASE_DIR / ".env.local").exists():
+        env_path = BASE_DIR / ".env.local"
+
+if env_path:
+    load_dotenv(dotenv_path=env_path, override=False)
 
 # === ENTORNO ===
 ENVIRONMENT = os.getenv("ENV", "local").lower()
