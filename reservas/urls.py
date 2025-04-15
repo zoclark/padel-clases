@@ -12,10 +12,3 @@ urlpatterns = [
     path("perfil/", perfil_alumno),
     path("historial/", historial_entrenamientos),
 ]
-# Servir estáticos
-urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
-
-# Servir frontend (React)
-urlpatterns += [
-    re_path(r"^(?!api|static|assets).*", FrontendAppView.as_view())
-]

@@ -8,13 +8,9 @@ from reservas.views import FrontendAppView
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('reservas.urls')),
+    re_path(r"^(?!admin|api|static|assets).*$", FrontendAppView.as_view(), name="frontend"),
 ]
 
 # Solo sirve archivos estáticos localmente si DEBUG está activado
 if settings.DEBUG and settings.STATICFILES_DIRS:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATICFILES_DIRS[0])
-
-# Captura cualquier otra ruta (SPA) y devuelve index.html
-urlpatterns += [
-    re_path(r"^.*$", FrontendAppView.as_view(), name="frontend"),
-]
