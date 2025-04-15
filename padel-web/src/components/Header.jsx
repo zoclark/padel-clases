@@ -1,100 +1,73 @@
+// src/components/Header.jsx
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Menu as MenuIcon, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import useAuth from "@/hooks/useAuth";
+import Logo from "@/assets/MetrikPadel_Logo.svg";
 
 export default function Header() {
   const navigate = useNavigate();
   const { isAuthenticated, logout } = useAuth();
-
   const [menuOpen, setMenuOpen] = useState(false);
   const toggleMenu = () => setMenuOpen((prev) => !prev);
 
-  // Enlaces siempre visibles (dependiendo de la sesión)
-  const fixedLinks = [
-    {
-      label: "Inicio",
-      onClick: () => navigate("/"),
-    },
-    ...(isAuthenticated
-      ? [
-          { label: "Panel Usuario", onClick: () => navigate("/panel") },
-          { label: "Cerrar sesión", onClick: logout },
-        ]
-      : [
-          { label: "Iniciar sesión", onClick: () => navigate("/login") },
-          { label: "Registrarse", onClick: () => navigate("/registro") },
-        ]),
+  const mainLinks = [
+    { label: "Inicio", onClick: () => navigate("/") },
+    { label: "Entrenamiento", onClick: () => navigate("/entrenamiento") },
+    { label: "Sobre Nosotros", onClick: () => alert("Aquí iría tu sección Sobre Nosotros") },
+    { label: "Contacto", onClick: () => alert("Aquí iría tu sección Contacto") },
   ];
 
-  // Enlaces secundarios
-  const menuLinks = [
-    {
-      label: "Entrenamiento",
-      onClick: () => {
-        setMenuOpen(false);
-        navigate("/entrenamiento");
-      },
-    },
-    {
-      label: "Sobre Nosotros",
-      onClick: () => {
-        setMenuOpen(false);
-        alert("Aquí iría tu sección Sobre Nosotros");
-      },
-    },
-    {
-      label: "Contacto",
-      onClick: () => {
-        setMenuOpen(false);
-        alert("Aquí iría tu sección Contacto");
-      },
-    },
-  ];
+  const authLinks = isAuthenticated
+    ? [
+        { label: "Panel Usuario", onClick: () => navigate("/panel"), className: "text-lg font-semibold hover:text-blue-600 transition-all" },
+        { label: "Cerrar sesión", onClick: logout, className: "header-logout" },
+      ]
+    : [
+        { label: "Iniciar sesión", onClick: () => navigate("/login"), className: "text-lg font-semibold hover:text-blue-600 transition-all" },
+        { label: "Registrarse", onClick: () => navigate("/registro"), className: "header-auth" },
+      ];
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-gray-900/80 backdrop-blur-sm text-white shadow-md">
-      <div className="px-6 py-4 flex justify-between items-center">
-        {/* Logo o título */}
-        <div
-          className="text-2xl font-bold cursor-pointer"
-          onClick={() => navigate("/")}
-        >
-          PadelPro
+    <header className="fixed top-0 left-0 right-0 z-50 bg-[#0f172a]/90 text-white shadow-lg backdrop-blur">
+      <div className="flex items-center justify-between gap-6 px-0 sm:px-4 md:px-6 py-3">
+        {/* Logo grande sin texto */}
+        <div className="relative h-20 w-20 flex-shrink-0 cursor-pointer" onClick={() => navigate("/")}>
+          <img src={Logo} alt="Metrik Pádel" className="absolute top-1/2 left-0 -translate-y-1/2 h-24 w-auto" />
         </div>
 
-        {/* -- Sección Desktop -- */}
-        <nav className="hidden md:flex items-center gap-6">
-          {fixedLinks.map((item, idx) => (
+        {/* Enlaces Desktop */}
+        <nav className="hidden xl:flex flex-1 justify-center items-center gap-6">
+          {mainLinks.map((item, idx) => (
             <button
               key={idx}
               onClick={item.onClick}
-              className="hover:underline"
-            >
-              {item.label}
-            </button>
-          ))}
-          {menuLinks.map((item, idx) => (
-            <button
-              key={idx}
-              onClick={item.onClick}
-              className="hover:underline"
+              className="text-lg font-semibold hover:text-blue-600 transition-all"
             >
               {item.label}
             </button>
           ))}
         </nav>
 
-        {/* -- Hamburguesa (versión móvil) -- */}
-        <div className="md:hidden">
+        {/* Enlaces Auth */}
+        <div className="hidden xl:flex items-center gap-3 pr-4">
+          {authLinks.map((item, idx) => (
+            <button key={idx} onClick={item.onClick} className={item.className}>
+              {item.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Menú Móvil */}
+        <div className="xl:hidden pr-4">
           <button onClick={toggleMenu}>
             {menuOpen ? <X size={28} /> : <MenuIcon size={28} />}
           </button>
         </div>
       </div>
 
-      {/* Menú desplegable móvil */}
+      {/* Menú Móvil desplegable */}
       <AnimatePresence>
         {menuOpen && (
           <motion.div
@@ -103,30 +76,17 @@ export default function Header() {
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="md:hidden bg-gray-800/80 backdrop-blur-sm shadow-md"
+            className="xl:hidden bg-[#E8E6E0] shadow-md text-black"
           >
             <div className="flex flex-col p-4 gap-3">
-              {fixedLinks.map((item, idx) => (
+              {[...mainLinks, ...authLinks].map((item, idx) => (
                 <button
                   key={idx}
                   onClick={() => {
                     item.onClick();
                     setMenuOpen(false);
                   }}
-                  className="hover:underline text-left"
-                >
-                  {item.label}
-                </button>
-              ))}
-              <hr className="border-gray-700" />
-              {menuLinks.map((item, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => {
-                    item.onClick();
-                    setMenuOpen(false);
-                  }}
-                  className="hover:underline text-left"
+                  className={item.className || "text-left text-lg font-semibold hover:text-blue-600 transition-all"}
                 >
                   {item.label}
                 </button>
