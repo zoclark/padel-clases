@@ -10,8 +10,14 @@ desktop.ini
 ##############################
 # Entornos virtuales Python
 ##############################
+venv/
+.env
+.env.*  # si tienes otros .env de entorno
+*.env
 
+##############################
 # Variables de entorno locales
+##############################
 padel-web/.env*
 
 ##############################
@@ -22,17 +28,16 @@ __pycache__/
 *$py.class
 *.pyo
 
-
-
 ##############################
 # Node.js / React / Vite
 ##############################
 node_modules/
-dist/
+padel-web/dist/
 .vite/
 *.tsbuildinfo
 
 # Archivos de lock (puedes versionarlos si usas uno solo)
+# Si quieres evitar conflictos entre entornos, déjalo ignorado:
 package-lock.json
 yarn.lock
 pnpm-lock.yaml
@@ -58,7 +63,6 @@ render.yaml.save
 ##############################
 *.sqlite3
 clean-clone/
-
 
 ##############################
 # Archivos comprimidos
