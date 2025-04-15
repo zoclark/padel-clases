@@ -134,8 +134,8 @@ STATIC_URL = '/static/'
 
 STATICFILES_DIRS = []
 STATIC_ROOT = BASE_DIR / 'backend' / 'staticfiles'
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-
+#STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATICFILES_STORAGE = 'whitenoise.storage.StaticFilesStorage'
 # === CONFIGURACIÓN EXTRA ===
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'reservas.Usuario'
