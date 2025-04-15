@@ -1,23 +1,30 @@
 .
-├── .env.local
-├── .gitignore
 ├── backend
 │   ├── __init__.py
+│   ├── __pycache__
+│   │   ├── __init__.cpython-39.pyc
+│   │   ├── settings.cpython-39.pyc
+│   │   ├── urls.cpython-39.pyc
+│   │   └── wsgi.cpython-39.pyc
 │   ├── asgi.py
 │   ├── settings.py
+│   ├── staticfiles
+│   │   ├── assets
+│   │   ├── images
+│   │   ├── index.html
+│   │   └── vite.svg
 │   ├── urls.py
 │   └── wsgi.py
 ├── build.sh
 ├── build.sh.save
 ├── build_local_prod.sh
 ├── clean-clone
-│   ├── .env.local
-│   ├── .env.production
-│   ├── .gitignore
 │   ├── backend
 │   │   ├── __init__.py
+│   │   ├── __pycache__
 │   │   ├── asgi.py
 │   │   ├── settings.py
+│   │   ├── staticfiles
 │   │   ├── urls.py
 │   │   └── wsgi.py
 │   ├── build.sh
@@ -25,8 +32,6 @@
 │   ├── build_local_prod.sh
 │   ├── manage.py
 │   ├── padel-web
-│   │   ├── .env.production
-│   │   ├── .gitignore
 │   │   ├── README.md
 │   │   ├── eslint.config.js
 │   │   ├── index.html
@@ -34,87 +39,306 @@
 │   │   ├── package.json
 │   │   ├── postcss.config.js
 │   │   ├── public
-│   │   │   └── vite.svg
 │   │   ├── src
-│   │   │   ├── App.css
-│   │   │   ├── App.jsx
-│   │   │   ├── api
-│   │   │   │   └── axiosConfig.js
-│   │   │   ├── assets
-│   │   │   │   ├── react.svg
-│   │   │   │   ├── slide1.png
-│   │   │   │   ├── slide2.png
-│   │   │   │   ├── slide3.png
-│   │   │   │   └── social
-│   │   │   │       ├── instagram.png
-│   │   │   │       ├── instagram.png:Zone.Identifier
-│   │   │   │       ├── whatsapp.png
-│   │   │   │       └── whatsapp.png:Zone.Identifier
-│   │   │   ├── components
-│   │   │   │   ├── BookingOptions.jsx
-│   │   │   │   ├── CalendarSchedule.jsx
-│   │   │   │   ├── FMRadarChart.jsx
-│   │   │   │   ├── Header.jsx
-│   │   │   │   ├── HeaderPanel.jsx
-│   │   │   │   ├── History.jsx
-│   │   │   │   ├── LineChart.jsx
-│   │   │   │   ├── PistaVisual.jsx
-│   │   │   │   ├── ProtectedRoute.jsx
-│   │   │   │   ├── RadarChart.jsx
-│   │   │   │   ├── TrainingHistory.jsx
-│   │   │   │   ├── header_bueno.jsx
-│   │   │   │   └── ui
-│   │   │   │       └── Button.jsx
-│   │   │   ├── contexts
-│   │   │   │   └── AuthContext.jsx
-│   │   │   ├── hooks
-│   │   │   │   ├── useAuth.js
-│   │   │   │   ├── useReservas.js
-│   │   │   │   └── useUserData.js
-│   │   │   ├── index.css
-│   │   │   ├── main.jsx
-│   │   │   └── pages
-│   │   │       ├── AlumnoPanel.jsx
-│   │   │       ├── Entrenamiento.jsx
-│   │   │       ├── Landing.jsx
-│   │   │       ├── Login.jsx
-│   │   │       └── Registro.jsx
 │   │   ├── tailwind.config.js
 │   │   └── vite.config.js
 │   ├── render.yaml
 │   ├── render.yaml.save
 │   ├── requirements.txt
-│   └── reservas
-│       ├── __init__.py
-│       ├── admin.py
-│       ├── apps.py
-│       ├── management
-│       │   └── commands
-│       │       └── cargar_caracts.py
-│       ├── migrations
-│       │   ├── 0001_initial.py
-│       │   ├── 0002_trainingsession.py
-│       │   ├── 0003_rename_paredes_alumnoperfil_agilidad_and_more.py
-│       │   ├── 0004_rename_cambio_de_agarre_alumnoperfil_bote_pronto_and_more.py
-│       │   ├── 0005_caracteristica_alumnoperfil_chiquita_and_more.py
-│       │   ├── 0006_alumnoperfil_contralateral_alumnoperfil_contrapared.py
-│       │   └── __init__.py
-│       ├── models.py
-│       ├── serializers.py
-│       ├── signals.py
-│       ├── tests.py
-│       ├── urls.py
-│       └── views.py
+│   ├── reservas
+│   │   ├── __init__.py
+│   │   ├── __pycache__
+│   │   ├── admin.py
+│   │   ├── apps.py
+│   │   ├── management
+│   │   ├── migrations
+│   │   ├── models.py
+│   │   ├── serializers.py
+│   │   ├── signals.py
+│   │   ├── tests.py
+│   │   ├── urls.py
+│   │   └── views.py
+│   └── venv
+│       ├── bin
+│       ├── lib
+│       ├── lib64 -> lib
+│       └── pyvenv.cfg
 ├── estructura.txt
 ├── manage.py
 ├── package-lock.json
 ├── padel-web
-│   ├── .env.production
-│   ├── .gitignore
 │   ├── README.md
 │   ├── env.production:Zone.Identifier
 │   ├── eslint.config.js
 │   ├── index.html
+│   ├── node_modules
+│   │   ├── @alloc
+│   │   ├── @ampproject
+│   │   ├── @babel
+│   │   ├── @esbuild
+│   │   ├── @eslint
+│   │   ├── @eslint-community
+│   │   ├── @humanfs
+│   │   ├── @humanwhocodes
+│   │   ├── @isaacs
+│   │   ├── @jridgewell
+│   │   ├── @kurkle
+│   │   ├── @nodelib
+│   │   ├── @pkgjs
+│   │   ├── @rollup
+│   │   ├── @tailwindcss
+│   │   ├── @types
+│   │   ├── @vitejs
+│   │   ├── @wojtekmaj
+│   │   ├── acorn
+│   │   ├── acorn-jsx
+│   │   ├── ajv
+│   │   ├── ansi-regex
+│   │   ├── ansi-styles
+│   │   ├── any-promise
+│   │   ├── anymatch
+│   │   ├── arg
+│   │   ├── argparse
+│   │   ├── asynckit
+│   │   ├── autoprefixer
+│   │   ├── axios
+│   │   ├── balanced-match
+│   │   ├── binary-extensions
+│   │   ├── brace-expansion
+│   │   ├── braces
+│   │   ├── browserslist
+│   │   ├── call-bind-apply-helpers
+│   │   ├── callsites
+│   │   ├── camelcase-css
+│   │   ├── caniuse-lite
+│   │   ├── chalk
+│   │   ├── chart.js
+│   │   ├── chokidar
+│   │   ├── clsx
+│   │   ├── color-convert
+│   │   ├── color-name
+│   │   ├── combined-stream
+│   │   ├── commander
+│   │   ├── concat-map
+│   │   ├── convert-source-map
+│   │   ├── cookie
+│   │   ├── cross-spawn
+│   │   ├── cssesc
+│   │   ├── csstype
+│   │   ├── d3-array
+│   │   ├── d3-color
+│   │   ├── d3-ease
+│   │   ├── d3-format
+│   │   ├── d3-interpolate
+│   │   ├── d3-path
+│   │   ├── d3-scale
+│   │   ├── d3-shape
+│   │   ├── d3-time
+│   │   ├── d3-time-format
+│   │   ├── d3-timer
+│   │   ├── debug
+│   │   ├── decimal.js-light
+│   │   ├── deep-is
+│   │   ├── delayed-stream
+│   │   ├── detect-libc
+│   │   ├── didyoumean
+│   │   ├── dlv
+│   │   ├── dom-helpers
+│   │   ├── dunder-proto
+│   │   ├── eastasianwidth
+│   │   ├── electron-to-chromium
+│   │   ├── emoji-regex
+│   │   ├── enhanced-resolve
+│   │   ├── es-define-property
+│   │   ├── es-errors
+│   │   ├── es-object-atoms
+│   │   ├── es-set-tostringtag
+│   │   ├── esbuild
+│   │   ├── escalade
+│   │   ├── escape-string-regexp
+│   │   ├── eslint
+│   │   ├── eslint-plugin-react-hooks
+│   │   ├── eslint-plugin-react-refresh
+│   │   ├── eslint-scope
+│   │   ├── eslint-visitor-keys
+│   │   ├── espree
+│   │   ├── esquery
+│   │   ├── esrecurse
+│   │   ├── estraverse
+│   │   ├── esutils
+│   │   ├── eventemitter3
+│   │   ├── fast-deep-equal
+│   │   ├── fast-equals
+│   │   ├── fast-glob
+│   │   ├── fast-json-stable-stringify
+│   │   ├── fast-levenshtein
+│   │   ├── fastq
+│   │   ├── file-entry-cache
+│   │   ├── fill-range
+│   │   ├── find-up
+│   │   ├── flat-cache
+│   │   ├── flatted
+│   │   ├── follow-redirects
+│   │   ├── foreground-child
+│   │   ├── form-data
+│   │   ├── fraction.js
+│   │   ├── framer-motion
+│   │   ├── function-bind
+│   │   ├── gensync
+│   │   ├── get-intrinsic
+│   │   ├── get-proto
+│   │   ├── get-user-locale
+│   │   ├── glob
+│   │   ├── glob-parent
+│   │   ├── globals
+│   │   ├── gopd
+│   │   ├── graceful-fs
+│   │   ├── has-flag
+│   │   ├── has-symbols
+│   │   ├── has-tostringtag
+│   │   ├── hasown
+│   │   ├── ignore
+│   │   ├── import-fresh
+│   │   ├── imurmurhash
+│   │   ├── internmap
+│   │   ├── is-binary-path
+│   │   ├── is-core-module
+│   │   ├── is-extglob
+│   │   ├── is-fullwidth-code-point
+│   │   ├── is-glob
+│   │   ├── is-number
+│   │   ├── isexe
+│   │   ├── jackspeak
+│   │   ├── jiti
+│   │   ├── js-cookie
+│   │   ├── js-tokens
+│   │   ├── js-yaml
+│   │   ├── jsesc
+│   │   ├── json-buffer
+│   │   ├── json-schema-traverse
+│   │   ├── json-stable-stringify-without-jsonify
+│   │   ├── json5
+│   │   ├── keyv
+│   │   ├── levn
+│   │   ├── lightningcss
+│   │   ├── lightningcss-linux-x64-gnu
+│   │   ├── lightningcss-linux-x64-musl
+│   │   ├── lilconfig
+│   │   ├── lines-and-columns
+│   │   ├── locate-path
+│   │   ├── lodash
+│   │   ├── lodash.castarray
+│   │   ├── lodash.isplainobject
+│   │   ├── lodash.merge
+│   │   ├── loose-envify
+│   │   ├── lru-cache
+│   │   ├── lucide-react
+│   │   ├── map-age-cleaner
+│   │   ├── math-intrinsics
+│   │   ├── mem
+│   │   ├── merge2
+│   │   ├── micromatch
+│   │   ├── mime-db
+│   │   ├── mime-types
+│   │   ├── mimic-fn
+│   │   ├── minimatch
+│   │   ├── minipass
+│   │   ├── motion-dom
+│   │   ├── motion-utils
+│   │   ├── ms
+│   │   ├── mz
+│   │   ├── nanoid
+│   │   ├── natural-compare
+│   │   ├── node-releases
+│   │   ├── normalize-path
+│   │   ├── normalize-range
+│   │   ├── object-assign
+│   │   ├── object-hash
+│   │   ├── optionator
+│   │   ├── p-defer
+│   │   ├── p-limit
+│   │   ├── p-locate
+│   │   ├── package-json-from-dist
+│   │   ├── parent-module
+│   │   ├── path-exists
+│   │   ├── path-key
+│   │   ├── path-parse
+│   │   ├── path-scurry
+│   │   ├── picocolors
+│   │   ├── picomatch
+│   │   ├── pify
+│   │   ├── pirates
+│   │   ├── postcss
+│   │   ├── postcss-import
+│   │   ├── postcss-js
+│   │   ├── postcss-load-config
+│   │   ├── postcss-nested
+│   │   ├── postcss-selector-parser
+│   │   ├── postcss-value-parser
+│   │   ├── prelude-ls
+│   │   ├── prop-types
+│   │   ├── proxy-from-env
+│   │   ├── punycode
+│   │   ├── queue-microtask
+│   │   ├── react
+│   │   ├── react-calendar
+│   │   ├── react-chartjs-2
+│   │   ├── react-cookie-consent
+│   │   ├── react-dom
+│   │   ├── react-is
+│   │   ├── react-refresh
+│   │   ├── react-router
+│   │   ├── react-router-dom
+│   │   ├── react-smooth
+│   │   ├── react-transition-group
+│   │   ├── read-cache
+│   │   ├── readdirp
+│   │   ├── recharts
+│   │   ├── recharts-scale
+│   │   ├── regenerator-runtime
+│   │   ├── resolve
+│   │   ├── resolve-from
+│   │   ├── reusify
+│   │   ├── rollup
+│   │   ├── run-parallel
+│   │   ├── scheduler
+│   │   ├── semver
+│   │   ├── set-cookie-parser
+│   │   ├── shebang-command
+│   │   ├── shebang-regex
+│   │   ├── signal-exit
+│   │   ├── source-map-js
+│   │   ├── string-width
+│   │   ├── string-width-cjs
+│   │   ├── strip-ansi
+│   │   ├── strip-ansi-cjs
+│   │   ├── strip-json-comments
+│   │   ├── sucrase
+│   │   ├── supports-color
+│   │   ├── supports-preserve-symlinks-flag
+│   │   ├── tailwindcss
+│   │   ├── tapable
+│   │   ├── thenify
+│   │   ├── thenify-all
+│   │   ├── tiny-invariant
+│   │   ├── to-regex-range
+│   │   ├── ts-interface-checker
+│   │   ├── tslib
+│   │   ├── turbo-stream
+│   │   ├── type-check
+│   │   ├── update-browserslist-db
+│   │   ├── uri-js
+│   │   ├── util-deprecate
+│   │   ├── victory-vendor
+│   │   ├── vite
+│   │   ├── warning
+│   │   ├── which
+│   │   ├── word-wrap
+│   │   ├── wrap-ansi
+│   │   ├── wrap-ansi-cjs
+│   │   ├── yallist
+│   │   ├── yaml
+│   │   └── yocto-queue
 │   ├── package-lock.json
 │   ├── package.json
 │   ├── postcss.config.js
@@ -125,75 +349,68 @@
 │   │   ├── App.css
 │   │   ├── App.jsx
 │   │   ├── api
-│   │   │   └── axiosConfig.js
 │   │   ├── assets
-│   │   │   ├── 1.svg
-│   │   │   ├── 1.svg:Zone.Identifier
-│   │   │   ├── MetrikPadel_Logo.svg
-│   │   │   ├── MetrikPadel_Logo.svg:Zone.Identifier
-│   │   │   ├── react.svg
-│   │   │   ├── slide1.png
-│   │   │   ├── slide2.png
-│   │   │   ├── slide3.png
-│   │   │   └── social
-│   │   │       ├── instagram.png
-│   │   │       ├── instagram.png:Zone.Identifier
-│   │   │       ├── whatsapp.png
-│   │   │       └── whatsapp.png:Zone.Identifier
 │   │   ├── components
-│   │   │   ├── BookingOptions.jsx
-│   │   │   ├── CalendarSchedule.jsx
-│   │   │   ├── FMRadarChart.jsx
-│   │   │   ├── Header.jsx
-│   │   │   ├── HeaderPanel.jsx
-│   │   │   ├── History.jsx
-│   │   │   ├── LineChart.jsx
-│   │   │   ├── PistaVisual.jsx
-│   │   │   ├── ProtectedRoute.jsx
-│   │   │   ├── RadarChart.jsx
-│   │   │   ├── TrainingHistory.jsx
-│   │   │   ├── header_bueno.jsx
-│   │   │   └── ui
-│   │   │       └── Button.jsx
 │   │   ├── contexts
-│   │   │   └── AuthContext.jsx
 │   │   ├── hooks
-│   │   │   ├── useAuth.js
-│   │   │   ├── useReservas.js
-│   │   │   └── useUserData.js
 │   │   ├── index.css
 │   │   ├── main.jsx
 │   │   └── pages
-│   │       ├── AlumnoPanel.jsx
-│   │       ├── Entrenamiento.jsx
-│   │       ├── Landing.jsx
-│   │       ├── Login.jsx
-│   │       └── Registro.jsx
 │   ├── tailwind.config.js
 │   └── vite.config.js
 ├── render.yaml
 ├── render.yaml.save
 ├── requirements.txt
-└── reservas
-    ├── __init__.py
-    ├── admin.py
-    ├── apps.py
-    ├── management
-    │   └── commands
-    │       └── cargar_caracts.py
-    ├── migrations
-    │   ├── 0001_initial.py
-    │   ├── 0002_trainingsession.py
-    │   ├── 0003_rename_paredes_alumnoperfil_agilidad_and_more.py
-    │   ├── 0004_rename_cambio_de_agarre_alumnoperfil_bote_pronto_and_more.py
-    │   ├── 0005_caracteristica_alumnoperfil_chiquita_and_more.py
-    │   ├── 0006_alumnoperfil_contralateral_alumnoperfil_contrapared.py
-    │   └── __init__.py
-    ├── models.py
-    ├── serializers.py
-    ├── signals.py
-    ├── tests.py
-    ├── urls.py
-    └── views.py
+├── reservas
+│   ├── __init__.py
+│   ├── __pycache__
+│   │   ├── __init__.cpython-39.pyc
+│   │   ├── admin.cpython-39.pyc
+│   │   ├── apps.cpython-39.pyc
+│   │   ├── models.cpython-39.pyc
+│   │   ├── serializers.cpython-39.pyc
+│   │   ├── signals.cpython-39.pyc
+│   │   ├── urls.cpython-39.pyc
+│   │   └── views.cpython-39.pyc
+│   ├── admin.py
+│   ├── apps.py
+│   ├── management
+│   │   └── commands
+│   ├── migrations
+│   │   ├── 0001_initial.py
+│   │   ├── 0002_trainingsession.py
+│   │   ├── 0003_rename_paredes_alumnoperfil_agilidad_and_more.py
+│   │   ├── 0004_rename_cambio_de_agarre_alumnoperfil_bote_pronto_and_more.py
+│   │   ├── 0005_caracteristica_alumnoperfil_chiquita_and_more.py
+│   │   ├── 0006_alumnoperfil_contralateral_alumnoperfil_contrapared.py
+│   │   ├── __init__.py
+│   │   └── __pycache__
+│   ├── models.py
+│   ├── serializers.py
+│   ├── signals.py
+│   ├── tests.py
+│   ├── urls.py
+│   └── views.py
+└── venv
+    ├── bin
+    │   ├── Activate.ps1
+    │   ├── activate
+    │   ├── activate.csh
+    │   ├── activate.fish
+    │   ├── django-admin
+    │   ├── dotenv
+    │   ├── gunicorn
+    │   ├── pip
+    │   ├── pip3
+    │   ├── pip3.9
+    │   ├── python -> python3
+    │   ├── python3 -> /home/angel/miniconda3/bin/python3
+    │   ├── python3.9 -> python3
+    │   └── sqlformat
+    ├── include
+    ├── lib
+    │   └── python3.9
+    ├── lib64 -> lib
+    └── pyvenv.cfg
 
-35 directories, 162 files
+311 directories, 103 files

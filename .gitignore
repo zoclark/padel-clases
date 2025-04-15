@@ -7,14 +7,6 @@ desktop.ini
 .vscode/
 .idea/
 
-##############################
-# Entornos virtuales Python
-##############################
-venv/
-.env
-.env.*
-!.env.example
-!.env.production.example
 
 ##############################
 # Archivos de Python
@@ -24,35 +16,13 @@ __pycache__/
 *$py.class
 *.pyo
 
-##############################
-# Django
-##############################
-db.sqlite3
-media/
-mediafiles/
-staticfiles/
-static_root/
-*.log
-*.pot
-*.pyc
-*.mo
 
-# Migraciones compiladas
-**/migrations/__pycache__/
-**/migrations/*.pyc
 
 ##############################
 # Node.js / React / Vite
 ##############################
 node_modules/
-dist/
-.vite/
-*.tsbuildinfo
 
-# Archivos de lock (puedes versionarlos si usas uno solo)
-package-lock.json
-yarn.lock
-pnpm-lock.yaml
 
 ##############################
 # Archivos temporales / backup
@@ -63,18 +33,7 @@ pnpm-lock.yaml
 *.old
 *.save
 
-##############################
-# Archivos de Render / despliegue
-##############################
-render-build/
-*.render-build/
-render.yaml.save
 
-##############################
-# Otros
-##############################
-*.sqlite3
-clean-clone/
 
 
 ##############################
