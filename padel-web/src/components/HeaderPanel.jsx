@@ -63,12 +63,13 @@ export default function HeaderPanel({ subView, setSubView }) {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-[#0f172a]/90 text-white shadow-lg backdrop-blur">
-      <div className="px-4 sm:px-6 py-3 flex justify-between items-center gap-6">
+      <div className="px-4 sm:px-6 md:px-8 py-3 flex justify-between items-center gap-6">
         {/* Logo con padding izquierdo solo en móvil */}
         <div
-          className="relative h-20 w-20 flex-shrink-0 cursor-pointer pl-4 sm:pl-0"
+          className="relative h-20 w-20 flex-shrink-0 cursor-pointer"
           onClick={() => navigate("/")}
         >
+          {/* Logo con padding izquierdo solo en móvil */}
           <img
             src={Logo}
             alt="Metrik Pádel"

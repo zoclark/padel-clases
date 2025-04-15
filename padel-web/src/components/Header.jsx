@@ -31,10 +31,10 @@ export default function Header() {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-[#0f172a]/90 text-white shadow-lg backdrop-blur">
-      <div className="flex items-center justify-between gap-6 px-0 sm:px-4 md:px-6 py-3">
+      <div className="flex items-center justify-between gap-6 px-4 sm:px-6 md:px-8 py-3">
         {/* Logo con padding izquierdo solo en móvil */}
         <div
-          className="relative h-20 w-20 flex-shrink-0 cursor-pointer pl-4 sm:pl-0"
+          className="relative h-20 w-20 flex-shrink-0 cursor-pointer"
           onClick={() => navigate("/")}
         >
           <img
