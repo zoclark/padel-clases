@@ -17,5 +17,5 @@ urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 # Servir frontend (React)
 urlpatterns += [
-    re_path(r"^(?!api|static|assets).*", FrontendAppView.as_view())
+    re_path(r"^(?!api/|static/|assets/|admin/).*", FrontendAppView.as_view())
 ]
