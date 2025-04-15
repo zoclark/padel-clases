@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
 
+#!/usr/bin/env bash
+set -e  # ⚠️ importante: aborta si falla algún comando
+
 echo ">> Mostrando todas las variables de entorno:"
 printenv
 echo ">> Fin de variables de entorno"
 
-if [ "$RENDER" = "True" ]; then
+if [ "$RENDER" = "true" ]; then
     echo "Construyendo para producción en Render..."
     
     # 1. Dependencias Python
@@ -14,6 +17,8 @@ if [ "$RENDER" = "True" ]; then
     cd padel-web
     npm install
     npm run build
+    echo ">> Contenido de padel-web/dist tras npm run build:"
+    ls -la padel-web/dist
     cd ..
 
     # 3. Mover a staticfiles

@@ -54,7 +54,7 @@ export default function HeaderPanel({ subView, setSubView }) {
   ];
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-[#D6D4CE]/95 text-black shadow-md">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-[#0f172a]/90 text-white shadow-lg backdrop-blur">
       <div className="px-4 sm:px-6 py-3 flex justify-between items-center gap-6">
         {/* Logo grande */}
         <div className="relative h-20 w-20 flex-shrink-0 cursor-pointer" onClick={() => navigate("/")}>
