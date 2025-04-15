@@ -1,12 +1,16 @@
 #!/usr/bin/env bash
 
-
 echo ">> Mostrando todas las variables de entorno:"
 printenv
 echo ">> Fin de variables de entorno"
 
-if [ "$RENDER" = "True" ]; then
+if [ "${RENDER,,}" = "true" ]; then
     echo "Construyendo para producción en Render..."
+
+    # 🔥 Eliminar .env locales del frontend para que Render use las envVars del panel
+    echo "Eliminando .env locales en padel-web..."
+    rm -f padel-web/.env*
+
     # 1. Dependencias Python
     pip install -r requirements.txt
 
@@ -17,7 +21,6 @@ if [ "$RENDER" = "True" ]; then
     cd ..
 
     # 3. Mover a staticfiles
-    #rm -rf backend/staticfiles/*
     mkdir -p backend/staticfiles
     cp -a padel-web/dist/. backend/staticfiles/
 
