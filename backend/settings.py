@@ -146,10 +146,21 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 # === CONFIGURACIÓN EXTRA ===
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'reservas.Usuario'
-CORS_ALLOW_ALL_ORIGINS = True
 CSRF_COOKIE_SECURE = True
+
+CORS_ALLOW_ALL_ORIGINS = False
 
 CORS_ALLOWED_ORIGINS = [
     'http://127.0.0.1:8000',
+    'http://localhost:8000',
     'https://padel-clases.onrender.com',
+    'https://www.metrikpadel.com',
+    'https://metrikpadel.com',
+    "http://127.0.0.1:5173",
+    "http://localhost:5173",
 ]
+
+
+if RENDER:
+    print(f"✔️ STATIC_ROOT = {STATIC_ROOT}")
+    print(f"✔️ STATICFILES_STORAGE = {STATICFILES_STORAGE}")
