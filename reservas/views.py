@@ -103,7 +103,7 @@ class FrontendAppView(View):
     def get(self, request, *args, **kwargs):
         # Leer el valor DEBUG (True en local, False en producción)
         debug_value = os.getenv("DEBUG", "False").lower()
-        is_debug = debug_value in ("true", "1", "yes")
+        is_debug = debug_value in ("True", "1", "yes")
 
         # Determinar ruta del index.html
         if is_debug and settings.STATICFILES_DIRS:

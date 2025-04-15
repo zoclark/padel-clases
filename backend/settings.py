@@ -25,8 +25,8 @@ load_dotenv(dotenv_path=env_path, override=False)
 
 # === ENTORNO ===
 ENVIRONMENT = os.getenv("ENV", "local").lower()
-DEBUG = os.getenv("DEBUG", "false").lower() in ("true", "1", "yes")
-RENDER = os.getenv("RENDER", "false").lower() == "true"
+DEBUG = os.getenv("DEBUG", "False").lower() in ("True", "1", "yes")
+RENDER = os.getenv("RENDER", "False").lower() == "True"
 
 print(f"[ENV]: {ENVIRONMENT}")
 print(f"[DEBUG]: {DEBUG}")

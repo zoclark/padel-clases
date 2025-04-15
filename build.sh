@@ -6,7 +6,7 @@ printenv
 echo ">> Fin de variables de entorno"
 
 # Convertimos RENDER a minúsculas por seguridad
-if [ "${RENDER,,}" = "true" ]; then
+if [ "${RENDER,,}" = "True" ]; then
     echo "✅ Construyendo para producción en Render..."
 
     # 1. Instalar dependencias Python

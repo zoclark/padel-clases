@@ -2,7 +2,7 @@ services:
   - type: web
     name: padel-clases
     env: python
-    plan: starter
+    plan: start
     buildCommand: "./build.sh"
     startCommand: "gunicorn backend.wsgi:application"
     staticPublishPath: staticfiles
@@ -20,13 +20,13 @@ services:
           name: padel-db
           property: connectionString
       - key: RENDER
-        value: "true"
+        value: "True"
       - key: ENV
-        value: production
+        value: "production"
       - key: VITE_API_BASE_URL
         value: https://padel-clases.onrender.com/api/
       - key: VITE_ENV
-        value: production
+        value: "production"
 
 databases:
   - name: padel-db
