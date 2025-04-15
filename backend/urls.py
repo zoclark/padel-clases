@@ -16,5 +16,6 @@ if settings.DEBUG and settings.STATICFILES_DIRS:
 
 # Captura cualquier otra ruta (SPA) y devuelve index.html
 urlpatterns += [
-    re_path(r"^.*$", FrontendAppView.as_view(), name="frontend"),
+    # Solo redirigir si la URL no empieza por /static/, /api/, etc.
+    re_path(r'^(?!static/|api/|media/).*$' , FrontendAppView.as_view(), name="frontend")
 ]

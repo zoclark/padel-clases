@@ -16,6 +16,7 @@ urlpatterns = [
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 # Servir frontend (React)
+# Servir React solo para rutas que NO apunten a archivos estáticos
 urlpatterns += [
-    re_path(r"^(?!api/|static/|assets/|admin/).*", FrontendAppView.as_view())
+    re_path(r"^(?!api)(?!static/)(?!assets/)(?!media/)(?!favicon\.ico)(?!robots\.txt).*$", FrontendAppView.as_view())
 ]
