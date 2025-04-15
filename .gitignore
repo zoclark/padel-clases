@@ -7,6 +7,14 @@ desktop.ini
 .vscode/
 .idea/
 
+# Node modules
+node_modules/
+.vite/
+
+# Build output
+dist/
+build/
+
 ##############################
 # Entornos virtuales Python
 ##############################
@@ -14,12 +22,29 @@ venv/
 .env
 .env.*  # si tienes otros .env de entorno
 *.env
-
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 ##############################
 # Variables de entorno locales
 ##############################
 padel-web/.env*
+# Django stuff
+db.sqlite3
+/media/
+/static/
+/backend/staticfiles/
+/backend/__pycache__/
+/backend/db.sqlite3
+/backend/media
+/backend/.env
+/backend/.env.*
 
+# System files
+.DS_Store
+Thumbs.db
 ##############################
 # Archivos de Python
 ##############################
