@@ -1,6 +1,7 @@
 # reservas/serializers.py
 from rest_framework import serializers
-from .models import AlumnoPerfil, Caracteristica, TrainingSession
+from .models import AlumnoPerfil, Caracteristica, TrainingSession, RecursoAlumno
+
 
 class CaracteristicaSerializer(serializers.ModelSerializer):
     class Meta:
@@ -34,3 +35,21 @@ class TrainingSessionSerializer(serializers.ModelSerializer):
     class Meta:
         model = TrainingSession
         fields = ['id', 'fecha', 'details', 'teacher_comment', 'session_type']
+
+
+from rest_framework import serializers
+from .models import RecursoAlumno
+
+class RecursoAlumnoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RecursoAlumno
+        fields = "__all__"
+
+
+from rest_framework import serializers
+from .models import RecursoAlumno
+
+class RecursoAlumnoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RecursoAlumno
+        fields = "__all__"

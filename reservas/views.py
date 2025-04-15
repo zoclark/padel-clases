@@ -123,3 +123,20 @@ class FrontendAppView(View):
             print("❌ Error inesperado al cargar index.html:", e)
             traceback.print_exc()
             return HttpResponseServerError(f"❌ Error cargando index.html:<br>{e}")
+        
+
+
+from rest_framework import viewsets, permissions
+from .models import RecursoAlumno
+from .serializers import RecursoAlumnoSerializer
+
+class RecursoAlumnoViewSet(viewsets.ModelViewSet):
+    queryset = RecursoAlumno.objects.all()
+    serializer_class = RecursoAlumnoSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_staff or user.is_superuser:
+            return RecursoAlumno.objects.all()
+        return RecursoAlumno.objects.filter(alumno=user)

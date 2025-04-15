@@ -94,3 +94,13 @@ class TrainingSessionAdmin(admin.ModelAdmin):
     list_display = ("alumno", "date", "session_type", "teacher_comment")
     list_filter = ("date", "session_type")
     search_fields = ("alumno__username", "details", "teacher_comment")
+
+
+from django.contrib import admin
+from .models import RecursoAlumno
+
+@admin.register(RecursoAlumno)
+class RecursoAlumnoAdmin(admin.ModelAdmin):
+    list_display = ("alumno", "descripcion", "url", "fecha_asignacion")
+    search_fields = ("alumno__username", "descripcion")
+    list_filter = ("fecha_asignacion",)

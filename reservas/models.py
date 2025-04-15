@@ -122,5 +122,32 @@ class TrainingSession(models.Model):
     
     def __str__(self):
         return f"Sesión de {self.alumno.username} en {self.date.strftime('%d/%m/%Y')}"
-    
+
+
+
+class RecursoAlumno(models.Model):
+    alumno = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="recursos_personalizados"
+    )
+    descripcion = models.CharField(max_length=255)
+    url = models.URLField()
+    fecha_asignacion = models.DateTimeField(auto_now_add=True)
+    asignado_por = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="recursos_asignados",
+        help_text="Profesor que asignó el recurso"
+    )
+
+    class Meta:
+        ordering = ['-fecha_asignacion']
+        verbose_name = "Recurso asignado"
+        verbose_name_plural = "Recursos asignados"
+
+    def __str__(self):
+        return f"{self.descripcion} → {self.alumno.username}"
 
