@@ -1,20 +1,22 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import Header from "@/components/Header";
+import SubmenuPanel from "@/components/SubmenuPanel";
 import FMRadarChart from "@/components/FMRadarChart";
 import LineChart from "@/components/LineChart";
 import PistaVisual from "@/components/PistaVisual";
 import TrainingHistory from "@/components/TrainingHistory";
 import BookingOptions from "@/components/BookingOptions";
-import clsx from "clsx";
+import RecursosAlumno from "@/components/RecursosAlumno";
 import useUserData from "@/hooks/useUserData";
-import useReservas from "@/hooks/useReservas";
+import useRecursosAlumno from "@/hooks/useRecursosAlumno"; // Importamos el hook para recursos
+import useReservas from "@/hooks/useReservas"; // Importar el hook para reservas
 
 export default function AlumnoPanel() {
   const navigate = useNavigate();
   const { data: perfil, loading, error } = useUserData();
-  const { data: reservas } = useReservas(); // en el futuro se puede usar para el subView reservas
-
+  const { recursos, loading: recursosLoading, error: recursosError } = useRecursosAlumno(); // Usamos el hook para recursos
+  const { data: reservas } = useReservas();
   const [subView, setSubView] = useState("atributos");
 
   if (loading) return <p className="text-center mt-24">Cargando datos...</p>;
@@ -22,7 +24,6 @@ export default function AlumnoPanel() {
 
   const trainingHistory = perfil?.historial_entrenamientos || [];
 
-  // === Datos de radar y estadísticas ===
   const radarFisico = [
     { skill: "Resistencia", value: perfil.resistencia },
     { skill: "Agilidad", value: perfil.agilidad },
@@ -73,26 +74,19 @@ export default function AlumnoPanel() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
       <Header />
+      
+      {/* Espaciado para header */}
+      <div style={{ paddingTop: "80px" }} />
 
-      <div className="pt-[6rem] max-w-7xl mx-auto px-4 pb-8">
-        <div className="bg-slate-900 border-b border-slate-700 px-6 py-3 shadow-md flex gap-6 rounded-md mb-6">
-          {["atributos", "historial", "reservas"].map((view) => (
-            <button
-              key={view}
-              onClick={() => setSubView(view)}
-              className={clsx(
-                "capitalize hover:underline transition",
-                subView === view && "font-bold underline text-blue-400"
-              )}
-            >
-              {view}
-            </button>
-          ))}
-        </div>
+      {/* Submenu */}
+      <div style={{ paddingTop: "10px" }}>
+        <SubmenuPanel subView={subView} setSubView={setSubView} />
+      </div>
 
+      {/* Contenido Principal */}
+      <div className="max-w-7xl mx-auto px-4 pb-8" style={{ paddingTop: "10px" }}>
         {subView === "atributos" && (
           <div className="bg-black/30 backdrop-blur rounded-xl shadow-2xl p-3 space-y-3">
-            {/* Datos del jugador */}
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-3">
               <div className="col-span-1 bg-black/40 p-3 rounded-md shadow-md text-sm flex items-center gap-3">
                 <div className="flex-1 space-y-1">
@@ -107,7 +101,6 @@ export default function AlumnoPanel() {
                 </div>
               </div>
 
-              {/* Stats y características */}
               <div className="col-span-3 bg-black/40 p-3 rounded-md shadow-md text-sm space-y-3">
                 <h2 className="text-base font-bold mb-1">Stats</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -127,8 +120,6 @@ export default function AlumnoPanel() {
                     </div>
                   ))}
                 </div>
-
-                {/* Características */}
                 {caracteristicas.length > 0 && (
                   <div className="bg-black/30 p-2 rounded">
                     <h3 className="font-semibold text-blue-300 mb-1">Características</h3>
@@ -142,7 +133,6 @@ export default function AlumnoPanel() {
               </div>
             </div>
 
-            {/* Radares y Evolución */}
             <div className="bg-black/40 p-3 rounded-md shadow-md">
               <h2 className="text-base font-bold mb-2">Radares y Evolución</h2>
               <div className="grid grid-cols-1 lg:grid-cols-4 gap-3">
@@ -163,7 +153,6 @@ export default function AlumnoPanel() {
               </div>
             </div>
 
-            {/* Análisis Global */}
             <div className="bg-black/40 p-2 rounded-md shadow-md text-sm">
               <h2 className="text-base font-bold mb-1">Análisis Global</h2>
               <p>{perfil.analisis_profesor || "No hay análisis del profesor."}</p>
@@ -182,6 +171,19 @@ export default function AlumnoPanel() {
           <div className="bg-black/30 backdrop-blur rounded-xl shadow-2xl p-3">
             <h2 className="text-lg font-bold mb-1">Reserva de Clases</h2>
             <BookingOptions onSelect={(tipo) => alert(`Reserva ${tipo}`)} />
+          </div>
+        )}
+
+        {subView === "recursos" && (
+          <div className="bg-black/30 backdrop-blur rounded-xl shadow-2xl p-3">
+            <h2 className="text-lg font-bold mb-1">Recursos asignados por el profesor</h2>
+            {recursosLoading ? (
+              <p>Cargando recursos...</p>
+            ) : recursosError ? (
+              <p className="text-red-500">{recursosError}</p>
+            ) : (
+              <RecursosAlumno recursos={recursos} />
+            )}
           </div>
         )}
       </div>

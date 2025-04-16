@@ -1,6 +1,8 @@
 from django.db import models
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
+from django.utils import timezone
+from datetime import timedelta
 
 # Usuario personalizado
 class Usuario(AbstractUser):
@@ -19,18 +21,43 @@ class Clase(models.Model):
     def __str__(self):
         return f"{self.fecha} - {self.profesor.username}"
 
-# Reserva de clase por un alumno
+# Modelo de reserva de clases por un alumno
 class Reserva(models.Model):
+    TIPO_RESERVA_CHOICES = [
+        ('individual', 'Individual'),
+        ('pareja', 'Pareja'),
+        ('grupal', 'Grupal'),
+    ]
+    
     alumno = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='reservas_alumno')
-    clase = models.ForeignKey(Clase, on_delete=models.CASCADE)
-    estado = models.CharField(max_length=20, choices=[
+    clase = models.ForeignKey('Clase', on_delete=models.CASCADE)
+    estado = models.CharField(max_length=20, choices=[  # Aquí defines el estado de la reserva
         ('pendiente', 'Pendiente'),
         ('confirmada', 'Confirmada'),
         ('cancelada', 'Cancelada'),
         ('realizada', 'Realizada'),
     ])
     fecha_reserva = models.DateTimeField(auto_now_add=True)
+    tipo_reserva = models.CharField(max_length=10, choices=TIPO_RESERVA_CHOICES, default='individual')  # Nuevo campo
+    
+    hora_inicio = models.DateTimeField(default=timezone.now)  # Hora de inicio de la reserva
+    hora_final = models.DateTimeField(blank=True, null=True)  # Hora de finalización de la reserva
 
+    def save(self, *args, **kwargs):
+        if not self.hora_final:  # Si no se ha especificado hora_final, calcularla
+            self.hora_final = self.hora_inicio + timedelta(hours=1)  # Una hora más que hora_inicio
+        super(Reserva, self).save(*args, **kwargs)
+
+    def __str__(self):
+        return f"Reserva de {self.alumno.username} para {self.clase.descripcion} de {self.hora_inicio.strftime('%d/%m/%Y %H:%M')} a {self.hora_final.strftime('%d/%m/%Y %H:%M')}"
+
+    def __str__(self):
+        return f"Reserva de {self.alumno.username} para {self.clase.descripcion} ({self.estado})"
+
+    @property
+    def duracion(self):
+        # Devuelve la duración en horas de la reserva
+        return (self.hora_final - self.hora_inicio).total_seconds() / 3600  # Duración en horas
 # Reserva de caracteristicas del alumno
 class Caracteristica(models.Model):
     nombre = models.CharField(max_length=100, unique=True)
@@ -131,8 +158,10 @@ class RecursoAlumno(models.Model):
         on_delete=models.CASCADE,
         related_name="recursos_personalizados"
     )
-    descripcion = models.CharField(max_length=255)
+    titulo = models.CharField(max_length=255)
+    comentarios = models.TextField(blank=True, null=True)  # Comentarios sobre el recurso
     url = models.URLField()
+    thumbnail = models.URLField(blank=True, null=True)  # Agregar este campo para la miniatura
     fecha_asignacion = models.DateTimeField(auto_now_add=True)
     asignado_por = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -149,5 +178,4 @@ class RecursoAlumno(models.Model):
         verbose_name_plural = "Recursos asignados"
 
     def __str__(self):
-        return f"{self.descripcion} → {self.alumno.username}"
-
+        return f"{self.titulo} → {self.alumno.username}"

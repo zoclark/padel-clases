@@ -10,6 +10,10 @@ export default function useUserData() {
     const fetchUser = async () => {
       try {
         const res = await api.get("/perfil/")
+
+        // Log para verificar si la propiedad 'recursos_alumno' existe
+        console.log('Respuesta de la API - Perfil:', res.data);
+
         setData(res.data)
       } catch (err) {
         console.error("Error al cargar perfil:", err)

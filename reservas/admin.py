@@ -101,6 +101,6 @@ from .models import RecursoAlumno
 
 @admin.register(RecursoAlumno)
 class RecursoAlumnoAdmin(admin.ModelAdmin):
-    list_display = ("alumno", "descripcion", "url", "fecha_asignacion")
-    search_fields = ("alumno__username", "descripcion")
+    list_display = ("alumno", "titulo", "comentarios","url", "fecha_asignacion")
+    search_fields = ("alumno__username", "titulo", "comentarios")
     list_filter = ("fecha_asignacion",)

@@ -59,6 +59,7 @@ export default function HeaderPanel({ subView, setSubView }) {
     { key: "atributos", label: "Atributos" },
     { key: "historial", label: "Historial" },
     { key: "reservas", label: "Reservas" },
+    { key: "recursos", label: "Recursos" },
   ];
 
   return (
@@ -108,18 +109,26 @@ export default function HeaderPanel({ subView, setSubView }) {
       </div>
 
       {/* Submenú del Panel */}
-      <div className="hidden xl:flex border-t border-gray-300 px-6 py-2 gap-6">
-        {panelLinks.map((pl) => (
-          <button
-            key={pl.key}
-            onClick={() => setSubView(pl.key)}
-            className={`capitalize text-lg font-semibold hover:text-blue-600 transition-all ${
-              subView === pl.key ? "font-bold underline text-blue-700" : ""
-            }`}
-          >
-            {pl.label}
-          </button>
-        ))}
+      <div className="hidden xl:flex justify-center mt-6">
+        <div className="flex gap-4 px-6 py-3 bg-slate-800/70 rounded-2xl shadow-xl ring-1 ring-white/10">
+          {panelLinks.map((pl) => (
+            <button
+              key={pl.key}
+              onClick={() => setSubView(pl.key)}
+              className={`relative px-5 py-2 rounded-lg text-base font-medium transition-all duration-300
+                ${
+                  subView === pl.key
+                    ? "bg-white text-slate-900 shadow-sm ring-1 ring-white/50"
+                    : "text-white/80 hover:bg-white/10 hover:text-white"
+                }`}
+            >
+              {pl.label}
+              {subView === pl.key && (
+                <span className="absolute -bottom-[6px] left-1/2 transform -translate-x-1/2 w-2 h-2 bg-white rounded-full shadow-md"></span>
+              )}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Menú móvil desplegable */}

@@ -1,11 +1,20 @@
 from rest_framework import status
-from .models import Usuario
-
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+import random
+from datetime import timedelta, date
+from .models import Usuario
+from .models import AlumnoPerfil
+from .serializers import AlumnoPerfilSerializer
 from .models import TrainingSession
 from .serializers import TrainingSessionSerializer
+from .models import TrainingSession
+from .serializers import TrainingSessionSerializer
+from .models import RecursoAlumno
+from .serializers import RecursoAlumnoSerializer
+from .models import Reserva
+from .serializers import ReservaSerializer
 
 
 @api_view(["POST"])
@@ -29,10 +38,6 @@ def registro_usuario(request):
         return Response({"error": str(e)}, status=500)
 
 
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-from .serializers import AlumnoPerfilSerializer
-from .models import AlumnoPerfil
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
@@ -46,14 +51,6 @@ def perfil_alumno(request):
         return Response(serializer.data)
     except AlumnoPerfil.DoesNotExist:
         return Response({"error": "Perfil no encontrado"}, status=404)
-
-
-import random
-from datetime import timedelta, date
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-from .models import TrainingSession
-from .serializers import TrainingSessionSerializer
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
@@ -77,6 +74,34 @@ def historial_entrenamientos(request):
     sesiones = TrainingSession.objects.filter(alumno=alumno).order_by("-date")
     serializer = TrainingSessionSerializer(sesiones, many=True)
     return Response(serializer.data)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def recursos_alumno(request):
+    try:
+        recursos = RecursoAlumno.objects.filter(alumno=request.user)
+        serializer = RecursoAlumnoSerializer(recursos, many=True)
+        return Response(serializer.data)
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def obtener_reservas(request):
+    # Filtra las reservas de acuerdo al usuario autenticado (request.user)
+    reservas = Reserva.objects.filter(alumno=request.user)
+
+    # Serializa las reservas
+    serializer = ReservaSerializer(reservas, many=True)
+
+    # Retorna las reservas en la respuesta
+    return Response(serializer.data)
+
+
+
+
+
 
 
 # ========================
@@ -126,17 +151,3 @@ class FrontendAppView(View):
         
 
 
-from rest_framework import viewsets, permissions
-from .models import RecursoAlumno
-from .serializers import RecursoAlumnoSerializer
-
-class RecursoAlumnoViewSet(viewsets.ModelViewSet):
-    queryset = RecursoAlumno.objects.all()
-    serializer_class = RecursoAlumnoSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get_queryset(self):
-        user = self.request.user
-        if user.is_staff or user.is_superuser:
-            return RecursoAlumno.objects.all()
-        return RecursoAlumno.objects.filter(alumno=user)

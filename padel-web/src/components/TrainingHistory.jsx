@@ -1,7 +1,13 @@
 // src/components/TrainingHistory.jsx
 import React from "react";
+import useHistorialEntrenamientos from "@/hooks/useHistorialEntrenamientos"; // Importamos el hook
 
-export default function TrainingHistory({ sessions }) {
+export default function TrainingHistory() {
+  const { sessions, loading, error } = useHistorialEntrenamientos(); // Usamos el hook para obtener las sesiones de entrenamiento
+
+  if (loading) return <p>Cargando el historial...</p>;
+  if (error) return <p className="text-red-500">{error}</p>;
+
   return (
     <div>
       <h2 className="text-2xl font-bold mb-4">Historial de Entrenamientos</h2>

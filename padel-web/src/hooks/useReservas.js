@@ -1,26 +1,26 @@
-import { useEffect, useState } from "react"
-import api from "@/api/axiosConfig"
+import { useEffect, useState } from "react";
+import api from "@/api/axiosConfig";
 
 export default function useReservas() {
-  const [data, setData] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchReservas = async () => {
       try {
-        const res = await api.get("/reservas/")
-        setData(res.data)
+        const res = await api.get("/reservas/");
+        setData(res.data);
       } catch (err) {
-        console.error("Error al cargar reservas:", err)
-        setError(err)
+        console.error("Error al cargar reservas:", err);
+        setError(err);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchReservas()
-  }, [])
+    fetchReservas();
+  }, []);
 
-  return { data, loading, error }
+  return { data, loading, error };
 }

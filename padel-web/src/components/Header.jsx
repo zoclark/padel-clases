@@ -1,12 +1,12 @@
 // src/components/Header.jsx
-import { useState } from "react";
+import { useState, forwardRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Menu as MenuIcon, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import useAuth from "@/hooks/useAuth";
 import Logo from "@/assets/MetrikPadel_Logo.svg";
 
-export default function Header() {
+const Header = forwardRef(function Header(_, ref) {
   const navigate = useNavigate();
   const { isAuthenticated, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -21,18 +21,36 @@ export default function Header() {
 
   const authLinks = isAuthenticated
     ? [
-        { label: "Panel Usuario", onClick: () => navigate("/panel"), className: "text-lg font-semibold hover:text-blue-600 transition-all" },
-        { label: "Cerrar sesión", onClick: logout, className: "header-logout" },
+        {
+          label: "Panel Usuario",
+          onClick: () => navigate("/panel"),
+          className: "text-lg font-semibold hover:text-blue-600 transition-all",
+        },
+        {
+          label: "Cerrar sesión",
+          onClick: logout,
+          className: "header-logout",
+        },
       ]
     : [
-        { label: "Iniciar sesión", onClick: () => navigate("/login"), className: "text-lg font-semibold hover:text-blue-600 transition-all" },
-        { label: "Registrarse", onClick: () => navigate("/registro"), className: "header-auth" },
+        {
+          label: "Iniciar sesión",
+          onClick: () => navigate("/login"),
+          className: "text-lg font-semibold hover:text-blue-600 transition-all",
+        },
+        {
+          label: "Registrarse",
+          onClick: () => navigate("/registro"),
+          className: "header-auth",
+        },
       ];
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-[#0f172a]/90 text-white shadow-lg backdrop-blur">
+    <header
+      ref={ref}
+      className="fixed top-0 left-0 right-0 z-50 bg-[#0f172a]/90 text-white shadow-lg backdrop-blur"
+    >
       <div className="flex items-center justify-between gap-6 px-4 sm:px-6 md:px-8 py-3">
-        {/* Logo con padding izquierdo solo en móvil */}
         <div
           className="relative h-20 w-20 flex-shrink-0 cursor-pointer"
           onClick={() => navigate("/")}
@@ -44,7 +62,6 @@ export default function Header() {
           />
         </div>
 
-        {/* Enlaces Desktop */}
         <nav className="hidden xl:flex flex-1 justify-center items-center gap-6">
           {mainLinks.map((item, idx) => (
             <button
@@ -57,7 +74,6 @@ export default function Header() {
           ))}
         </nav>
 
-        {/* Enlaces Auth */}
         <div className="hidden xl:flex items-center gap-3 pr-4">
           {authLinks.map((item, idx) => (
             <button key={idx} onClick={item.onClick} className={item.className}>
@@ -66,7 +82,6 @@ export default function Header() {
           ))}
         </div>
 
-        {/* Menú Móvil con padding horizontal corregido */}
         <div className="xl:hidden px-4 sm:px-0">
           <button onClick={toggleMenu}>
             {menuOpen ? <X size={28} /> : <MenuIcon size={28} />}
@@ -74,7 +89,6 @@ export default function Header() {
         </div>
       </div>
 
-      {/* Menú Móvil desplegable */}
       <AnimatePresence>
         {menuOpen && (
           <motion.div
@@ -93,7 +107,10 @@ export default function Header() {
                     item.onClick();
                     setMenuOpen(false);
                   }}
-                  className={item.className || "text-left text-lg font-semibold hover:text-blue-600 transition-all"}
+                  className={
+                    item.className ||
+                    "text-left text-lg font-semibold hover:text-blue-600 transition-all"
+                  }
                 >
                   {item.label}
                 </button>
@@ -104,4 +121,6 @@ export default function Header() {
       </AnimatePresence>
     </header>
   );
-}
+});
+
+export default Header;

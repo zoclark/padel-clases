@@ -45,6 +45,9 @@ USE_STATIC_FRONTEND = ENVIRONMENT == "production"
 SECRET_KEY = os.getenv("SECRET_KEY", "clave-insegura-por-defecto")
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "*").split(",")
 
+
+
+
 # === APLICACIONES ===
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -57,6 +60,8 @@ INSTALLED_APPS = [
     'rest_framework',
     'reservas',
 ]
+
+MEDIA_URL = '/media/'
 
 # === MIDDLEWARE ===
 MIDDLEWARE = [
@@ -80,6 +85,9 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.AllowAny',
     ),
 }
+
+
+
 
 # === RUTAS Y WSGI ===
 ROOT_URLCONF = 'backend.urls'
