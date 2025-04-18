@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Header from "@/components/Header";
 import SubmenuPanel from "@/components/SubmenuPanel";
 import FMRadarChart from "@/components/FMRadarChart";
@@ -9,15 +9,31 @@ import TrainingHistory from "@/components/TrainingHistory";
 import BookingOptions from "@/components/BookingOptions";
 import RecursosAlumno from "@/components/RecursosAlumno";
 import useUserData from "@/hooks/useUserData";
-import useRecursosAlumno from "@/hooks/useRecursosAlumno"; // Importamos el hook para recursos
-import useReservas from "@/hooks/useReservas"; // Importar el hook para reservas
+import useRecursosAlumno from "@/hooks/useRecursosAlumno";
+import useReservas from "@/hooks/useReservas";
 
 export default function AlumnoPanel() {
   const navigate = useNavigate();
   const { data: perfil, loading, error } = useUserData();
-  const { recursos, loading: recursosLoading, error: recursosError } = useRecursosAlumno(); // Usamos el hook para recursos
+  const { recursos, loading: recursosLoading, error: recursosError } = useRecursosAlumno();
   const { data: reservas } = useReservas();
   const [subView, setSubView] = useState("atributos");
+
+  const headerRef = useRef(null);
+  const [lastScrollY, setLastScrollY] = useState(0);
+  const [hideHeader, setHideHeader] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentY = window.scrollY;
+      if (window.innerWidth < 1024) {
+        setHideHeader(currentY > lastScrollY && currentY > 80);
+        setLastScrollY(currentY);
+      }
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [lastScrollY]);
 
   if (loading) return <p className="text-center mt-24">Cargando datos...</p>;
   if (error || !perfil) return <p className="text-center mt-24 text-red-500">Error cargando perfil.</p>;
@@ -72,23 +88,30 @@ export default function AlumnoPanel() {
   const caracteristicas = Array.isArray(perfil.caracteristicas) ? perfil.caracteristicas : [];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
-      <Header />
-      
-      {/* Espaciado para header */}
-      <div style={{ paddingTop: "80px" }} />
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white overflow-x-hidden">
 
-      {/* Submenu */}
-      <div style={{ paddingTop: "10px" }}>
+      {/* Header ocultable con scroll */}
+      <div
+        ref={headerRef}
+        className={`bg-slate-900 transform transition-transform duration-300 fixed top-0 left-0 right-0 z-50 ${
+          hideHeader ? "-translate-y-full" : "translate-y-0"
+        }`}
+      >
+        <div className="max-w-7xl mx-auto px-4">
+          <Header />
+        </div>
+      </div>
+
+      <div className="pt-20" />
+      <div className="pt-2 px-2">
         <SubmenuPanel subView={subView} setSubView={setSubView} />
       </div>
 
-      {/* Contenido Principal */}
-      <div className="max-w-7xl mx-auto px-4 pb-8" style={{ paddingTop: "10px" }}>
+      <div className="max-w-7xl mx-auto px-2 sm:px-4 pb-8 pt-4">
         {subView === "atributos" && (
-          <div className="bg-black/30 backdrop-blur rounded-xl shadow-2xl p-3 space-y-3">
+          <div className="bg-black/30 backdrop-blur rounded-xl shadow-2xl p-2 sm:p-3 space-y-3">
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-3">
-              <div className="col-span-1 bg-black/40 p-3 rounded-md shadow-md text-sm flex items-center gap-3">
+              <div className="col-span-1 bg-black/40 p-3 rounded-md shadow-md text-sm flex flex-col sm:flex-row items-center gap-3">
                 <div className="flex-1 space-y-1">
                   <h2 className="text-base font-bold mb-1">Datos del Jugador</h2>
                   <p><strong>Usuario:</strong> {perfil.usuario}</p>
@@ -101,7 +124,7 @@ export default function AlumnoPanel() {
                 </div>
               </div>
 
-              <div className="col-span-3 bg-black/40 p-3 rounded-md shadow-md text-sm space-y-3">
+              <div className="col-span-1 lg:col-span-3 bg-black/40 p-3 rounded-md shadow-md text-sm space-y-3">
                 <h2 className="text-base font-bold mb-1">Stats</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                   {[fisicoStats, tecnicaGolpeoStats, posicionStats, skillsStats].map((section, idx) => (
@@ -111,7 +134,7 @@ export default function AlumnoPanel() {
                       </h3>
                       <div className="space-y-1">
                         {section.map((h, i) => (
-                          <div key={i} className="flex justify-between border-b border-white/10 py-0.5">
+                          <div key={i} className="flex justify-between border-b border-white/10 py-0.5 text-xs">
                             <span>{h.nombre}</span>
                             <span className="font-bold">{h.valor}</span>
                           </div>
@@ -123,7 +146,7 @@ export default function AlumnoPanel() {
                 {caracteristicas.length > 0 && (
                   <div className="bg-black/30 p-2 rounded">
                     <h3 className="font-semibold text-blue-300 mb-1">Características</h3>
-                    <ul className="list-disc list-inside space-y-1">
+                    <ul className="list-disc list-inside space-y-1 text-xs">
                       {caracteristicas.map((c, idx) => (
                         <li key={idx}>{c.nombre}</li>
                       ))}
@@ -135,7 +158,7 @@ export default function AlumnoPanel() {
 
             <div className="bg-black/40 p-3 rounded-md shadow-md">
               <h2 className="text-base font-bold mb-2">Radares y Evolución</h2>
-              <div className="grid grid-cols-1 lg:grid-cols-4 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
                 {[radarFisico, radarTecnica, radarAreaPos].map((data, i) => (
                   <div key={i} className="bg-black/30 p-2 rounded text-sm">
                     <p className="font-semibold mb-1">{["Físico", "Técnica", "Área/Posición"][i]}</p>

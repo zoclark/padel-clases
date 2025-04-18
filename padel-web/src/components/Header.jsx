@@ -1,5 +1,4 @@
-// src/components/Header.jsx
-import { useState, forwardRef } from "react";
+import { useState, useEffect, forwardRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Menu as MenuIcon, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -10,7 +9,22 @@ const Header = forwardRef(function Header(_, ref) {
   const navigate = useNavigate();
   const { isAuthenticated, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [hideHeader, setHideHeader] = useState(false);
+  const [lastScrollY, setLastScrollY] = useState(0);
+
   const toggleMenu = () => setMenuOpen((prev) => !prev);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentY = window.scrollY;
+      if (window.innerWidth < 1024) {
+        setHideHeader(currentY > lastScrollY && currentY > 80);
+        setLastScrollY(currentY);
+      }
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [lastScrollY]);
 
   const mainLinks = [
     { label: "Inicio", onClick: () => navigate("/") },
@@ -48,9 +62,11 @@ const Header = forwardRef(function Header(_, ref) {
   return (
     <header
       ref={ref}
-      className="fixed top-0 left-0 right-0 z-50 bg-[#0f172a]/90 text-white shadow-lg backdrop-blur"
+      className={`fixed top-0 left-0 right-0 z-50 backdrop-blur-md bg-[#0f172a]/80 text-white transition-transform duration-300 ${
+        hideHeader ? "-translate-y-full" : "translate-y-0 shadow-xl"
+      }`}
     >
-      <div className="flex items-center justify-between gap-6 px-4 sm:px-6 md:px-8 py-3">
+      <div className="max-w-7xl mx-auto flex items-center justify-between gap-6 px-4 sm:px-6 md:px-8 py-3">
         <div
           className="relative h-20 w-20 flex-shrink-0 cursor-pointer"
           onClick={() => navigate("/")}
