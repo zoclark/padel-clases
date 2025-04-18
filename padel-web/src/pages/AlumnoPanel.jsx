@@ -1,5 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
+import { motion } from "framer-motion";
+import { Info } from "lucide-react";
 import Header from "@/components/Header";
 import SubmenuPanel from "@/components/SubmenuPanel";
 import FMRadarChart from "@/components/FMRadarChart";
@@ -11,6 +13,85 @@ import RecursosAlumno from "@/components/RecursosAlumno";
 import useUserData from "@/hooks/useUserData";
 import useRecursosAlumno from "@/hooks/useRecursosAlumno";
 import useReservas from "@/hooks/useReservas";
+
+const descripciones = {
+"Resistencia": "Capacidad de mantener un rendimiento constante durante partidos largos. Es clave para no bajar el ritmo en el tercer set.",
+"Agilidad": "Facilidad para moverse con rapidez y cambiar de dirección. Mejora tu reacción ante bolas rápidas o inesperadas.",
+"Coordinación": "Sincronización entre cuerpo y vista. Es esencial para conectar golpes limpios, especialmente en situaciones de presión.",
+"Técnica": "Precisión y calidad en la ejecución de golpes. Una técnica depurada permite ganar puntos con menos esfuerzo.",
+"Velocidad": "Rapidez de desplazamiento en pista. A mayor velocidad, más tiempo tendrás para preparar tus golpes.",
+"Potencia": "Fuerza en los golpes. Ideal para remates, víboras o globos ofensivos que busquen ganar el punto directamente.",
+"Globo": "Golpe defensivo que lanza la bola alta para ganar tiempo o cambiar el ritmo del juego. Fundamental cuando estás en apuros.",
+"V. Natural": "Volea con tu lado dominante. Su precisión y control son vitales para dominar la red.",
+"Bandeja": "Golpe aéreo de control que permite mantener la red. Es básico para neutralizar globos sin perder la posición.",
+"Remate": "Golpe contundente para cerrar puntos. Cuanto mayor sea tu remate, más peligro generas desde el fondo.",
+"Víbora": "Golpe agresivo con efecto lateral. Una mezcla entre bandeja y remate que complica la devolución del rival.",
+"Rulo": "Golpe con efecto liftado desde el fondo. Se usa para presionar y hacer subir al rival.",
+"B. Pronto": "Golpear la bola nada más botar. Reduce el tiempo de reacción del rival y te permite anticiparte.",
+"Dejada": "Golpe suave que busca dejar la bola cerca de la red. Ideal para romper el ritmo del rival.",
+"Chiquita": "Golpe corto al centro de la pista, con intención de subir a la red. Se utiliza para provocar errores.",
+"V. Revés": "Volea con el lado no dominante. Requiere buena técnica para ser tan efectiva como la natural.",
+"Ataque": "Capacidad para presionar al rival y finalizar puntos. Cuanto mayor, más agresivo y eficaz serás.",
+"Pared": "Uso táctico de las paredes para devolver bolas complicadas. Imprescindible en defensa.",
+"P. Lateral": "Control de las bolas que rebotan en la pared lateral. Mejora la capacidad para responder golpes cruzados.",
+"Defensa": "Capacidad de resistir puntos largos y responder con bolas incómodas desde el fondo.",
+"P. Fondo": "Habilidad para gestionar el juego desde detrás. Necesaria para defender globos y remates.",
+"F. Pared": "Lectura del rebote en la unión fondo-pared. Imprescindible para defender correctamente.",
+"Cambio Agarre": "Capacidad para alternar rápidamente entre empuñaduras según el tipo de golpe. Mejora la adaptabilidad.",
+"Liftado": "Uso de efecto topspin. Aporta altura y seguridad al golpeo, sobre todo en bolas profundas.",
+"Cortado": "Efecto backspin que hace que la bola caiga y rebote poco. Muy útil en defensa o en dejadas.",
+"Remate x3": "Remate que busca sacar la bola por tres metros. Requiere potencia, precisión y buena lectura del punto.",
+"Remate x4": "Versión más potente del remate x3, que sale por la pared lateral. Es un golpe definitivo si se domina.",
+"Contrapared": "Respuesta tras rebote en la pared, con control y precisión. Fundamental para defender bien.",
+"Contralateral": "Golpe que cruza la pista en diagonal, ideal para descolocar al rival y abrir huecos.",
+  // Añade más según tus necesidades...
+};
+
+function getColor(valor) {
+  if (valor <= 25) return "bg-red-500";
+  if (valor <= 50) return "bg-yellow-400";
+  if (valor <= 75) return "bg-white";
+  return "bg-green-400";
+}
+
+function StatRow({ nombre, valor }) {
+  const descripcion = descripciones[nombre];
+  const [showTooltip, setShowTooltip] = useState(false);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="relative"
+    >
+      <div className="flex justify-between items-center gap-2 text-xs">
+        <span className="flex items-center gap-1">
+          {nombre}
+          {descripcion && (
+            <button
+              onMouseEnter={() => setShowTooltip(true)}
+              onMouseLeave={() => setShowTooltip(false)}
+              onClick={() => setShowTooltip(!showTooltip)}
+              className="text-white/70 hover:text-white focus:outline-none"
+            >
+              <Info size={14} />
+            </button>
+          )}
+        </span>
+        <span className="font-bold">{valor}</span>
+      </div>
+      <div className="h-1 bg-white/10 rounded-full mt-1">
+        <div className={`h-1 rounded-full ${getColor(valor)}`} style={{ width: `${valor}%` }} />
+      </div>
+      {showTooltip && descripcion && (
+        <div className="absolute z-50 top-full mt-1 w-56 p-2 text-xs text-white bg-black/80 rounded shadow-lg backdrop-blur-sm">
+          {descripcion}
+        </div>
+      )}
+    </motion.div>
+  );
+}
 
 export default function AlumnoPanel() {
   const navigate = useNavigate();
@@ -107,7 +188,12 @@ export default function AlumnoPanel() {
 
       <div className="max-w-7xl mx-auto px-2 sm:px-4 pb-8 pt-4">
         {subView === "atributos" && (
-          <div className="bg-black/30 backdrop-blur rounded-xl shadow-2xl p-2 sm:p-3 space-y-3">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+            className="bg-black/30 backdrop-blur rounded-xl shadow-2xl p-2 sm:p-3 space-y-3"
+          >
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-3">
               <div className="col-span-1 bg-black/40 p-3 rounded-md shadow-md text-sm flex flex-row items-center justify-between gap-3">
                 <div className="flex-1 space-y-1">
@@ -132,10 +218,7 @@ export default function AlumnoPanel() {
                       </h3>
                       <div className="space-y-1">
                         {section.map((h, i) => (
-                          <div key={i} className="flex justify-between border-b border-white/10 py-0.5 text-xs">
-                            <span>{h.nombre}</span>
-                            <span className="font-bold">{h.valor}</span>
-                          </div>
+                          <StatRow key={i} nombre={h.nombre} valor={h.valor} />
                         ))}
                       </div>
                     </div>
@@ -178,7 +261,7 @@ export default function AlumnoPanel() {
               <h2 className="text-base font-bold mb-1">Análisis Global</h2>
               <p>{perfil.analisis_profesor || "No hay análisis del profesor."}</p>
             </div>
-          </div>
+          </motion.div>
         )}
 
         {subView === "historial" && (
