@@ -89,8 +89,6 @@ export default function AlumnoPanel() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white overflow-x-hidden">
-
-      {/* Header ocultable con scroll */}
       <div
         ref={headerRef}
         className={`bg-slate-900 transform transition-transform duration-300 fixed top-0 left-0 right-0 z-50 ${
@@ -111,7 +109,7 @@ export default function AlumnoPanel() {
         {subView === "atributos" && (
           <div className="bg-black/30 backdrop-blur rounded-xl shadow-2xl p-2 sm:p-3 space-y-3">
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-3">
-              <div className="col-span-1 bg-black/40 p-3 rounded-md shadow-md text-sm flex flex-col sm:flex-row items-center gap-3">
+              <div className="col-span-1 bg-black/40 p-3 rounded-md shadow-md text-sm flex flex-row items-center justify-between gap-3">
                 <div className="flex-1 space-y-1">
                   <h2 className="text-base font-bold mb-1">Datos del Jugador</h2>
                   <p><strong>Usuario:</strong> {perfil.usuario}</p>
@@ -119,7 +117,7 @@ export default function AlumnoPanel() {
                   <p><strong>Mano:</strong> {perfil.mano_dominante}</p>
                   <p><strong>Posición:</strong> {perfil.posicion}</p>
                 </div>
-                <div className="w-24 h-24 overflow-hidden">
+                <div className="w-24 h-24 sm:w-28 sm:h-28 overflow-hidden">
                   <PistaVisual posicion={perfil.posicion} />
                 </div>
               </div>
