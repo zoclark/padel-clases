@@ -8,7 +8,7 @@ export default function Entrenamiento() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen flex flex-col bg-white">
+    <div className="mt-10 min-h-screen flex flex-col bg-white">
       <Header />
       <motion.section
         initial={{ opacity: 0, y: 30 }}

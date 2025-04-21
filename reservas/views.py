@@ -4,19 +4,17 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 import random
 from datetime import timedelta, date
-from .models import Usuario
-from .models import AlumnoPerfil
-from .serializers import AlumnoPerfilSerializer
-from .models import TrainingSession
-from .serializers import TrainingSessionSerializer
-from .models import TrainingSession
-from .serializers import TrainingSessionSerializer
-from .models import RecursoAlumno
-from .serializers import RecursoAlumnoSerializer
-from .models import Reserva
-from .serializers import ReservaSerializer
+from .models import (
+    Usuario, AlumnoPerfil, TrainingSession, RecursoAlumno,
+    Reserva, Pozo, ParticipantePozo, Afinidad, JugadorPozo
+)
+from .serializers import (
+    AlumnoPerfilSerializer, TrainingSessionSerializer, RecursoAlumnoSerializer,
+    ReservaSerializer, PozoSerializer, ParticipantePozoSerializer,
+    AfinidadSerializer
+)
 
-
+# ================= REGISTRO Y PERFIL ===================
 @api_view(["POST"])
 def registro_usuario(request):
     datos = request.data
@@ -37,45 +35,46 @@ def registro_usuario(request):
         print("❌ Error en el registro:", e)
         return Response({"error": str(e)}, status=500)
 
-
-
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
-def perfil_alumno(request):
-    if request.user.rol != "alumno":
-        return Response({"error": "Solo disponible para usuarios alumnos"}, status=403)
+def perfil_usuario(request):
+    data = {
+        "username": request.user.username,
+        "rol": request.user.rol,
+    }
+    if request.user.rol == "alumno":
+        try:
+            perfil = AlumnoPerfil.objects.get(usuario=request.user)
+            data.update(AlumnoPerfilSerializer(perfil).data)
+        except AlumnoPerfil.DoesNotExist:
+            data["error"] = "Perfil de alumno no encontrado"
+    return Response(data)
 
-    try:
-        perfil = AlumnoPerfil.objects.get(usuario=request.user)
-        serializer = AlumnoPerfilSerializer(perfil)
-        return Response(serializer.data)
-    except AlumnoPerfil.DoesNotExist:
-        return Response({"error": "Perfil no encontrado"}, status=404)
-
+# ================ ENTRENAMIENTOS =======================
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def historial_entrenamientos(request):
     alumno = request.user
-
     if not TrainingSession.objects.filter(alumno=alumno).exists():
         for i in range(10):
             TrainingSession.objects.create(
                 alumno=alumno,
                 date=date.today() - timedelta(days=i * 7),
                 details=random.choice([
-                    "Sesión táctica", "Entrenamiento físico", "Juego con pareja", "Defensa en pista", "Remates y voleas"
+                    "Sesión táctica", "Entrenamiento físico", "Juego con pareja",
+                    "Defensa en pista", "Remates y voleas"
                 ]),
                 teacher_comment=random.choice([
-                    "Buena actitud", "Debe mejorar el control", "Excelente avance esta semana", None
+                    "Buena actitud", "Debe mejorar el control",
+                    "Excelente avance esta semana", None
                 ]),
                 session_type=random.choice(["individual", "grupo", "dúo"]),
             )
-
     sesiones = TrainingSession.objects.filter(alumno=alumno).order_by("-date")
     serializer = TrainingSessionSerializer(sesiones, many=True)
     return Response(serializer.data)
 
-
+# ================ RECURSOS PERSONALIZADOS =============
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def recursos_alumno(request):
@@ -86,58 +85,29 @@ def recursos_alumno(request):
     except Exception as e:
         return Response({"error": str(e)}, status=500)
 
+# ================ RESERVAS ============================
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def obtener_reservas(request):
-    # Filtra las reservas de acuerdo al usuario autenticado (request.user)
     reservas = Reserva.objects.filter(alumno=request.user)
-
-    # Serializa las reservas
     serializer = ReservaSerializer(reservas, many=True)
-
-    # Retorna las reservas en la respuesta
     return Response(serializer.data)
 
-
-
-
-
-
-
-# ========================
-# FRONTENDAPPVIEW CORREGIDO
-# ========================
+# ================= FRONTENDAPPVIEW ====================
 from django.views.generic import View
 from django.http import HttpResponse, HttpResponseServerError
 from django.conf import settings
-import os
-import traceback
-
-
-from django.views.generic import View
-from django.http import HttpResponse, HttpResponseServerError
-from django.conf import settings
-import os
-
-from django.views.generic import View
-from django.http import HttpResponse, HttpResponseServerError
-import os
-from django.conf import settings
+import os, traceback
 
 class FrontendAppView(View):
     def get(self, request, *args, **kwargs):
-        # Leer el valor DEBUG (True en local, False en producción)
         debug_value = os.getenv("DEBUG", "False").lower()
         is_debug = debug_value in ("true", "1", "yes")
-
-        # Determinar ruta del index.html
         if is_debug and settings.STATICFILES_DIRS:
             index_path = os.path.join(settings.STATICFILES_DIRS[0], "index.html")
         else:
             index_path = os.path.join(settings.STATIC_ROOT, "index.html")
-
         print(f"📄 Sirviendo index desde: {index_path}")
-
         try:
             with open(index_path, encoding="utf-8") as f:
                 return HttpResponse(f.read())
@@ -148,6 +118,52 @@ class FrontendAppView(View):
             print("❌ Error inesperado al cargar index.html:", e)
             traceback.print_exc()
             return HttpResponseServerError(f"❌ Error cargando index.html:<br>{e}")
-        
 
+# =================== POZOS ============================
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def listar_pozos(request):
+    pozos = Pozo.objects.all()
+    serializer = PozoSerializer(pozos, many=True)
+    return Response(serializer.data)
 
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def crear_pozo(request):
+    serializer = PozoSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save(creado_por=request.user)
+        return Response(serializer.data, status=201)
+    return Response(serializer.errors, status=400)
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def participantes_pozo(request, pozo_id):
+    participantes = ParticipantePozo.objects.filter(pozo_id=pozo_id)
+    serializer = ParticipantePozoSerializer(participantes, many=True)
+    return Response(serializer.data)
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def agregar_participante(request):
+    serializer = ParticipantePozoSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=201)
+    return Response(serializer.errors, status=400)
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def afinidades_usuario(request, usuario_id):
+    afinidades = Afinidad.objects.filter(participante__usuario_id=usuario_id)
+    serializer = AfinidadSerializer(afinidades, many=True)
+    return Response(serializer.data)
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def crear_afinidad(request):
+    serializer = AfinidadSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=201)
+    return Response(serializer.errors, status=400)

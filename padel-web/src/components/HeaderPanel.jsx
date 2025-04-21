@@ -1,14 +1,14 @@
-// src/components/HeaderPanel.jsx
-import { useState } from "react";
+// ✅ HeaderPanel.jsx actualizado
+import { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { Menu as MenuIcon, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import useAuth from "@/hooks/useAuth";
+import { AuthContext } from "@/contexts/AuthContext";
 import Logo from "@/assets/MetrikPadel_Logo.svg";
 
 export default function HeaderPanel({ subView, setSubView }) {
   const navigate = useNavigate();
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, logout } = useContext(AuthContext);
   const [menuOpen, setMenuOpen] = useState(false);
   const toggleMenu = () => setMenuOpen((prev) => !prev);
 
@@ -22,12 +22,10 @@ export default function HeaderPanel({ subView, setSubView }) {
         {
           label: "Iniciar sesión",
           onClick: () => navigate("/login"),
-          className: "text-lg font-semibold hover:text-blue-600 transition-all",
         },
         {
           label: "Registrarse",
           onClick: () => navigate("/registro"),
-          className: "header-auth",
         },
       ];
 
@@ -65,12 +63,10 @@ export default function HeaderPanel({ subView, setSubView }) {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-[#0f172a]/90 text-white shadow-lg backdrop-blur">
       <div className="px-4 sm:px-6 md:px-8 py-3 flex justify-between items-center gap-6">
-        {/* Logo con padding izquierdo solo en móvil */}
         <div
           className="relative h-20 w-20 flex-shrink-0 cursor-pointer"
           onClick={() => navigate("/")}
         >
-          {/* Logo con padding izquierdo solo en móvil */}
           <img
             src={Logo}
             alt="Metrik Pádel"
@@ -78,20 +74,21 @@ export default function HeaderPanel({ subView, setSubView }) {
           />
         </div>
 
-        {/* Navegación Desktop */}
         <nav className="hidden xl:flex items-center gap-6 flex-1 justify-center">
           {[...fixedLinks, ...menuLinks].map((item, i) => (
             <button
               key={i}
               onClick={item.onClick}
-              className={item.className || "text-lg font-semibold hover:text-blue-600 transition-all"}
+              className={
+                item.className ||
+                "text-lg font-semibold hover:text-blue-600 transition-all"
+              }
             >
               {item.label}
             </button>
           ))}
         </nav>
 
-        {/* Logout Desktop */}
         <div className="hidden xl:flex items-center gap-4">
           {isAuthenticated && (
             <button onClick={logout} className="header-logout">
@@ -100,7 +97,6 @@ export default function HeaderPanel({ subView, setSubView }) {
           )}
         </div>
 
-        {/* Menú móvil */}
         <div className="xl:hidden">
           <button onClick={toggleMenu}>
             {menuOpen ? <X size={24} /> : <MenuIcon size={24} />}
@@ -108,7 +104,6 @@ export default function HeaderPanel({ subView, setSubView }) {
         </div>
       </div>
 
-      {/* Submenú del Panel */}
       <div className="hidden xl:flex justify-center mt-6">
         <div className="flex gap-4 px-6 py-3 bg-slate-800/70 rounded-2xl shadow-xl ring-1 ring-white/10">
           {panelLinks.map((pl) => (
@@ -131,7 +126,6 @@ export default function HeaderPanel({ subView, setSubView }) {
         </div>
       </div>
 
-      {/* Menú móvil desplegable */}
       <AnimatePresence>
         {menuOpen && (
           <motion.div
@@ -150,7 +144,10 @@ export default function HeaderPanel({ subView, setSubView }) {
                     item.onClick();
                     setMenuOpen(false);
                   }}
-                  className={item.className || "text-left text-lg font-semibold hover:text-blue-600 transition-all"}
+                  className={
+                    item.className ||
+                    "text-left text-lg font-semibold hover:text-blue-600 transition-all"
+                  }
                 >
                   {item.label}
                 </button>

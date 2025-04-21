@@ -1,13 +1,14 @@
-import { useState, useEffect, forwardRef } from "react";
+import { useState, useEffect, forwardRef, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { Menu as MenuIcon, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import useAuth from "@/hooks/useAuth";
+import { AuthContext } from "@/contexts/AuthContext";
 import Logo from "@/assets/MetrikPadel_Logo.svg";
+import DefaultAvatar from "@/assets/default_avatar.png";
 
 const Header = forwardRef(function Header(_, ref) {
   const navigate = useNavigate();
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, logout, user, loading } = useContext(AuthContext);
   const [menuOpen, setMenuOpen] = useState(false);
   const [hideHeader, setHideHeader] = useState(false);
   const [lastScrollY, setLastScrollY] = useState(0);
@@ -26,38 +27,28 @@ const Header = forwardRef(function Header(_, ref) {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [lastScrollY]);
 
+  useEffect(() => {
+    if (menuOpen && isAuthenticated !== null) {
+      setMenuOpen(false);
+    }
+  }, [isAuthenticated]);
+
+  const displayedUsername = user?.username || user?.usuario || "Usuario";
+
   const mainLinks = [
     { label: "Inicio", onClick: () => navigate("/") },
     { label: "Entrenamiento", onClick: () => navigate("/entrenamiento") },
-    { label: "Sobre Nosotros", onClick: () => alert("Aquí iría tu sección Sobre Nosotros") },
-    { label: "Contacto", onClick: () => alert("Aquí iría tu sección Contacto") },
+    {
+      label: "Sobre Nosotros",
+      onClick: () => alert("Aquí iría tu sección Sobre Nosotros"),
+    },
+    {
+      label: "Contacto",
+      onClick: () => alert("Aquí iría tu sección Contacto"),
+    },
   ];
 
-  const authLinks = isAuthenticated
-    ? [
-        {
-          label: "Panel Usuario",
-          onClick: () => navigate("/panel"),
-          className: "text-lg font-semibold hover:text-blue-600 transition-all",
-        },
-        {
-          label: "Cerrar sesión",
-          onClick: logout,
-          className: "header-logout",
-        },
-      ]
-    : [
-        {
-          label: "Iniciar sesión",
-          onClick: () => navigate("/login"),
-          className: "text-lg font-semibold hover:text-blue-600 transition-all",
-        },
-        {
-          label: "Registrarse",
-          onClick: () => navigate("/registro"),
-          className: "header-auth",
-        },
-      ];
+  if (loading) return null;
 
   return (
     <header
@@ -83,19 +74,50 @@ const Header = forwardRef(function Header(_, ref) {
             <button
               key={idx}
               onClick={item.onClick}
-              className="text-lg font-semibold hover:text-blue-600 transition-all"
+              className="text-lg font-semibold hover:text-blue-500 transition-all"
             >
               {item.label}
             </button>
           ))}
         </nav>
 
-        <div className="hidden xl:flex items-center gap-3 pr-4">
-          {authLinks.map((item, idx) => (
-            <button key={idx} onClick={item.onClick} className={item.className}>
-              {item.label}
-            </button>
-          ))}
+        <div className="hidden xl:flex items-center gap-4 pr-4">
+          {isAuthenticated ? (
+            <>
+              <button
+                onClick={() => navigate("/panel")}
+                className="flex items-center gap-2 px-2 py-1 bg-white/10 rounded-full hover:bg-white/20 transition-all"
+              >
+                <img
+                  src={DefaultAvatar}
+                  alt="Avatar"
+                  className="w-8 h-8 rounded-full border border-white"
+                />
+                <span className="text-sm font-medium">{displayedUsername}</span>
+              </button>
+              <button
+                onClick={logout}
+                className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
+              >
+                Cerrar sesión
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={() => navigate("/login")}
+                className="text-sm font-semibold hover:text-blue-400"
+              >
+                Iniciar sesión
+              </button>
+              <button
+                onClick={() => navigate("/registro")}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm"
+              >
+                Registrarse
+              </button>
+            </>
+          )}
         </div>
 
         <div className="xl:hidden px-4 sm:px-0">
@@ -116,21 +138,69 @@ const Header = forwardRef(function Header(_, ref) {
             className="xl:hidden bg-[#E8E6E0] shadow-md text-black"
           >
             <div className="flex flex-col p-4 gap-3">
-              {[...mainLinks, ...authLinks].map((item, idx) => (
+              {mainLinks.map((item, idx) => (
                 <button
                   key={idx}
                   onClick={() => {
                     item.onClick();
                     setMenuOpen(false);
                   }}
-                  className={
-                    item.className ||
-                    "text-left text-lg font-semibold hover:text-blue-600 transition-all"
-                  }
+                  className="text-left text-lg font-semibold hover:text-blue-600 transition-all"
                 >
                   {item.label}
                 </button>
               ))}
+
+              <hr className="my-2 border-gray-400" />
+
+              {isAuthenticated ? (
+                <div className="flex flex-col gap-2 items-start">
+                  <button
+                    onClick={() => {
+                      navigate("/panel");
+                      setMenuOpen(false);
+                    }}
+                    className="flex items-center gap-2 mb-1 hover:text-blue-600"
+                  >
+                    <img
+                      src={DefaultAvatar}
+                      alt="Avatar"
+                      className="w-8 h-8 rounded-full border border-gray-600"
+                    />
+                    <span className="text-sm font-medium">{displayedUsername}</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      logout();
+                      setMenuOpen(false);
+                    }}
+                    className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
+                  >
+                    Cerrar sesión
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <button
+                    onClick={() => {
+                      navigate("/login");
+                      setMenuOpen(false);
+                    }}
+                    className="text-left text-lg font-semibold hover:text-blue-600 transition-all"
+                  >
+                    Iniciar sesión
+                  </button>
+                  <button
+                    onClick={() => {
+                      navigate("/registro");
+                      setMenuOpen(false);
+                    }}
+                    className="text-left text-lg font-semibold hover:text-blue-600 transition-all"
+                  >
+                    Registrarse
+                  </button>
+                </>
+              )}
             </div>
           </motion.div>
         )}

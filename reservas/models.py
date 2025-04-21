@@ -3,14 +3,16 @@ from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
 from datetime import timedelta
+from django.contrib.auth import get_user_model
 
 # Usuario personalizado
 class Usuario(AbstractUser):
     ROLES = (
         ('alumno', 'Alumno'),
         ('profesor', 'Profesor'),
+        ('organizador', 'Organizador'),
     )
-    rol = models.CharField(max_length=10, choices=ROLES)
+    rol = models.CharField(max_length=15, choices=ROLES)
 
 # Clase creada por un profesor
 class Clase(models.Model):
@@ -38,7 +40,7 @@ class Reserva(models.Model):
         ('realizada', 'Realizada'),
     ])
     fecha_reserva = models.DateTimeField(auto_now_add=True)
-    tipo_reserva = models.CharField(max_length=10, choices=TIPO_RESERVA_CHOICES, default='individual')  # Nuevo campo
+    tipo_reserva = models.CharField(max_length=15, choices=TIPO_RESERVA_CHOICES, default='individual')  # Nuevo campo
     
     hora_inicio = models.DateTimeField(default=timezone.now)  # Hora de inicio de la reserva
     hora_final = models.DateTimeField(blank=True, null=True)  # Hora de finalización de la reserva
@@ -179,3 +181,63 @@ class RecursoAlumno(models.Model):
 
     def __str__(self):
         return f"{self.titulo} → {self.alumno.username}"
+    
+Usuario = get_user_model()
+
+class Pozo(models.Model):
+    TIPO_CHOICES = [
+        ("mixto", "Mixto"),
+        ("parejas", "Por Parejas"),
+        ("hombres", "Solo Hombres"),
+        ("mujeres", "Solo Mujeres"),
+    ]
+
+    fecha = models.DateField()
+    hora_inicio = models.TimeField()
+    hora_fin = models.TimeField()
+    tipo = models.CharField(max_length=10, choices=TIPO_CHOICES)
+    num_pistas = models.PositiveIntegerField(default=8)
+    creado_por = models.ForeignKey(Usuario, on_delete=models.SET_NULL, null=True)
+
+    def __str__(self):
+        return f"Pozo {self.fecha} ({self.tipo})"
+
+
+class ParticipantePozo(models.Model):
+    pozo = models.ForeignKey(Pozo, on_delete=models.CASCADE, related_name="participantes")
+    usuario = models.ForeignKey(Usuario, on_delete=models.SET_NULL, null=True, blank=True)
+    nombre = models.CharField(max_length=100)
+    nivel = models.FloatField()  # de 0 a 5 por ejemplo
+    genero = models.CharField(max_length=10, choices=[("hombre", "Hombre"), ("mujer", "Mujer")])
+    pista_fija = models.PositiveIntegerField(null=True, blank=True)  # Si debe empezar en pista X
+
+    def __str__(self):
+        return f"{self.nombre} - Nivel {self.nivel}"
+
+
+class Afinidad(models.Model):
+    participante = models.ForeignKey(ParticipantePozo, related_name="afinidades", on_delete=models.CASCADE)
+    con_participante = models.ForeignKey(ParticipantePozo, related_name="evitado_por", on_delete=models.CASCADE)
+    tipo = models.CharField(
+        max_length=20,
+        choices=[
+            ("evitar", "Evitar totalmente"),
+            ("evitar_pareja", "Evitar como pareja"),
+            ("evitar_rival", "Evitar como rival"),
+        ]
+    )
+
+    def __str__(self):
+        return f"{self.participante} - NO {self.tipo} con {self.con_participante}"
+
+
+class JugadorPozo(models.Model):
+    pozo = models.ForeignKey(Pozo, on_delete=models.CASCADE, related_name="jugadores")
+    nombre = models.CharField(max_length=100)
+    nivel = models.PositiveIntegerField()
+    registrado = models.BooleanField(default=False)  # Si es un usuario real o añadido manualmente
+    afinidades_positivas = models.ManyToManyField("self", blank=True, symmetrical=False, related_name="afinidades_positivas_de")
+    afinidades_negativas = models.ManyToManyField("self", blank=True, symmetrical=False, related_name="afinidades_negativas_de")
+
+    def __str__(self):
+        return f"{self.nombre} ({'Registrado' if self.registrado else 'Manual'})"
