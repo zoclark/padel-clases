@@ -1,7 +1,8 @@
 from rest_framework import status
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, parser_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.parsers import MultiPartParser
 import random
 from datetime import timedelta, date
 from .models import (
@@ -14,6 +15,9 @@ from .serializers import (
     AfinidadSerializer
 )
 from .serializers import UsuarioPerfilSerializer
+
+
+
 # ================= REGISTRO Y PERFIL ===================
 @api_view(["POST"])
 def registro_usuario(request):
@@ -264,3 +268,105 @@ def detalle_pozo(request, pozo_id):
         serializer.save()
         return Response(serializer.data)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+# reservas/views.py  ⬇️  añádelo debajo de agregar_participante
+import pandas as pd
+from rest_framework.parsers import MultiPartParser
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+@parser_classes([MultiPartParser])
+def importar_participantes_excel(request, pozo_id):
+    import pandas as pd
+
+    try:
+        pozo = Pozo.objects.get(id=pozo_id)
+    except Pozo.DoesNotExist:
+        return Response({"error": "Pozo no encontrado"}, status=404)
+
+    file = request.FILES.get("file")
+    print("📁 Nombre del fichero recibido:", file.name if file else "No recibido")
+    if not file:
+        return Response({"error": "Fichero no recibido"}, status=400)
+
+    try:
+        df = pd.read_excel(file)
+        df.columns = [c.lower() for c in df.columns]
+        print("📊 Columnas recibidas:", df.columns.tolist())
+    except Exception as e:
+        return Response({"error": f"Error leyendo Excel: {e}"}, status=400)
+
+    expected = {"nombre", "nivel", "genero", "posicion", "mano_dominante", "pista_fija"}
+    if not expected.issubset(set(df.columns)):
+        return Response(
+            {"error": f"Columnas requeridas: {', '.join(expected)}"},
+            status=400,
+        )
+
+    capacidad = pozo.num_pistas * 4
+    existentes = {p.nombre.lower(): p for p in ParticipantePozo.objects.filter(pozo=pozo)}
+    nuevos = []
+
+    for _, row in df.iterrows():
+        try:
+            # Normaliza y limpia strings a minúsculas (excepto nivel y pista_fija)
+            nombre           = str(row.get("nombre", "")).strip().lower()
+            genero           = str(row.get("genero", "hombre")).strip().lower()
+            posicion         = str(row.get("posicion", "ambos")).strip().lower()
+            mano_dominante   = str(row.get("mano_dominante", "diestro")).strip().lower()
+
+            if not nombre:
+                continue
+
+            pista_fija = row.get("pista_fija")
+            pista_fija = int(pista_fija) if pd.notnull(pista_fija) and str(pista_fija).strip() != "" else None
+
+            nivel = int(row.get("nivel", 0) or 0)
+
+            # Validación defensiva (opcional)
+            if genero not in ["hombre", "mujer"]:
+                genero = "hombre"
+            if posicion not in ["reves", "drive", "ambos"]:
+                posicion = "ambos"
+            if mano_dominante not in ["diestro", "zurdo"]:
+                mano_dominante = "diestro"
+
+            datos = dict(
+                pozo=pozo,
+                nombre=nombre,
+                nivel=nivel,
+                genero=genero,
+                posicion=posicion,
+                mano_dominante=mano_dominante,
+                pista_fija=pista_fija,
+            )
+
+            p_exist = existentes.get(nombre.lower())
+            if p_exist:
+                for k, v in datos.items():
+                    setattr(p_exist, k, v)
+                p_exist.save()
+            else:
+                nuevos.append(datos)
+
+        except Exception as e:
+            print(f"❌ Error procesando fila {row.to_dict()}: {e}")
+            return Response({"error": f"Error en fila '{row.get('nombre', '')}': {e}"}, status=400)
+
+
+    if len(existentes) + len(nuevos) > capacidad:
+        return Response(
+            {"error": f"Excede la capacidad del pozo ({capacidad})."},
+            status=400,
+        )
+
+    ParticipantePozo.objects.bulk_create(
+        [ParticipantePozo(**d) for d in nuevos]
+    )
+
+    serializer = ParticipantePozoSerializer(
+        ParticipantePozo.objects.filter(pozo=pozo), many=True
+    )
+    return Response(serializer.data, status=201)

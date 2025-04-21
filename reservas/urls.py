@@ -8,7 +8,7 @@ from .views import registro_usuario, perfil_usuario, historial_entrenamientos, o
 from .views import (
     crear_pozo, listar_pozos, participantes_pozo, agregar_participante, afinidades_usuario, crear_afinidad
 )
-from .views import actualizar_participante, eliminar_participante, detalle_pozo
+from .views import actualizar_participante, eliminar_participante, detalle_pozo, importar_participantes_excel
 
 
 urlpatterns = [
@@ -22,6 +22,7 @@ urlpatterns = [
     path("pozos/", listar_pozos),
     path("pozos/crear/", crear_pozo),
     path('pozos/<int:pozo_id>/', detalle_pozo,           name='detalle_pozo'),
+    
     path("pozos/<int:pozo_id>/participantes/", participantes_pozo),
     path("pozos/participantes/agregar/", agregar_participante),
     path("afinidades/<int:usuario_id>/", afinidades_usuario),
@@ -30,4 +31,13 @@ urlpatterns = [
     path("pozos/participantes/<int:participante_id>/eliminar/", eliminar_participante, name="eliminar_participante"),
 ]
 
+
+# reservas/urls.py
+urlpatterns += [
+    path(
+        "pozos/<int:pozo_id>/importar_excel/",
+        importar_participantes_excel,
+        name="importar_participantes_excel",
+    ),
+]
 

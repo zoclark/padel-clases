@@ -1,155 +1,150 @@
-/*
- * generatePairings.js – versión ES2020 (sin TypeScript)
- * -----------------------------------------------------
- * Mantiene la misma lógica que el diseño original en TS
- * pero elimina interfaces, type‑alias y anotaciones.
- * Puedes colocarlo en src/helpers/pairings.js y usarlo
- * directamente desde tu app React / Node.
- *
- *   import { generatePairings } from "./helpers/pairings";
- *   const { matches, debug } = generatePairings(participantes, 3, "mixto");
- */
-
 /**
- * @typedef {Object} Jugador
- * @property {string} nombre
- * @property {number} nivel  // 0‑5
- * @property {"hombre"|"mujer"} genero
- * @property {"Drive"|"Reves"|"Ambos"} posicion
- * @property {"diestro"|"zurdo"} mano_dominante
- * @property {number|"-"|0} pista_fija
+ * generatePairings – top‑vs‑top · pistas fijas · sin "undef"
+ * ----------------------------------------------------------
+ *  ▸ Respeta pista_fija.
+ *  ▸ En mixto cada pareja es Hombre‑Mujer (2 H / 2 M por pista).
+ *  ▸ Los niveles altos se colocan primero en las pistas superiores,
+ *    asignando mejor nivel total a pistas con menor índice.
+ *  ▸ Cada pista procura equilibrio entre parejas y compatibilidad (reves/drive/zurdo).
+ *  ▸ Stateless: cada llamada parte de cero; ningún efecto residual.
  */
-
-/**
- * @param {Jugador[]} participantes
- * @param {number} numPistas – Nº de pistas físicas disponibles
- * @param {"mixto"|"abierto"} tipoPozo – Si es "mixto" fuerza H‑M‑H‑M en cada grupo
- * @param {number} [epsilon=0.01] – Umbral para empates en la métrica
- */
-export function generatePairings(participantes, numPistas, tipoPozo = "mixto", epsilon = 0.01) {
-    /* ---------- 1. Parámetros de la métrica ---------- */
-    const PARTNER_DIFF_WEIGHT = 0.2;
-    const POSMAN_WEIGHT = 0.1;
+export function generatePairings(jugadores, numPistas, tipoPozo = "mixto", epsilon = 0.01) {
+    const PARTNER_DIFF_W = 0.5;
+    const POSMAN_W = 0.15;
+    const LOW_PAIR_W = 0.6;
+    const LO_LVL = 1;
   
-    /* ---------- 2. Construir todas las particiones 2×2 de 4 jugadores ---------- */
-    const buildTrials = (grupo) => {
-      const trials = [];
-      const combos = [
+    const players = jugadores.map((p) => ({
+      ...p,
+      genero: p.genero ?? "hombre",
+      sexo: p.genero === "mujer" ? "M" : "H",
+      mano: p.mano_dominante ?? "diestro",
+      nivel: Number(p.nivel) || 0,
+      pista_fija: Number(p.pista_fija) || 0,
+    }));
+  
+    const grupos = Array.from({ length: numPistas }, (_, i) => ({
+      pista: i + 1,
+      jugadores: [],
+      fijos: false,
+    }));
+  
+    const libres = [];
+    for (const p of players) {
+      if (p.pista_fija >= 1 && p.pista_fija <= numPistas) {
+        grupos[p.pista_fija - 1].jugadores.push(p);
+        grupos[p.pista_fija - 1].fijos = true;
+      } else {
+        libres.push(p);
+      }
+    }
+  
+    libres.sort((a, b) => b.nivel - a.nivel);
+    const sinFijos = grupos.filter((g) => !g.fijos);
+  
+    // Generar todas las posibles combinaciones válidas de 4 jugadores
+    const combinacionesValidas = [];
+    for (let i = 0; i < libres.length; i++) {
+      for (let j = i + 1; j < libres.length; j++) {
+        for (let k = j + 1; k < libres.length; k++) {
+          for (let l = k + 1; l < libres.length; l++) {
+            const grupo = [libres[i], libres[j], libres[k], libres[l]];
+  
+            const hombres = grupo.filter(p => p.genero === "hombre").length;
+            const mujeres = grupo.length - hombres;
+            if (tipoPozo === "mixto" && (hombres !== 2 || mujeres !== 2)) continue;
+  
+            // Generar todas las permutaciones para formar dos parejas
+            const pares = [
+              [[grupo[0], grupo[1]], [grupo[2], grupo[3]]],
+              [[grupo[0], grupo[2]], [grupo[1], grupo[3]]],
+              [[grupo[0], grupo[3]], [grupo[1], grupo[2]]],
+            ];
+  
+            for (const [A, B] of pares) {
+              const totA = A[0].nivel + A[1].nivel;
+              const totB = B[0].nivel + B[1].nivel;
+              const avgA = totA / 2;
+              const avgB = totB / 2;
+              const diffAvg = Math.abs(avgA - avgB);
+              const partnerDiff = Math.abs(A[0].nivel - A[1].nivel) + Math.abs(B[0].nivel - B[1].nivel);
+              const lowPair = (A.every(x => x.nivel <= LO_LVL) ? 1 : 0) + (B.every(x => x.nivel <= LO_LVL) ? 1 : 0);
+  
+              let posMan = 0;
+              for (const t of [A, B]) {
+                if (t[0].posicion === t[1].posicion && t[0].posicion !== "Ambos") posMan++;
+                if (t[0].mano === "zurdo" && t[1].mano === "zurdo") posMan++;
+              }
+  
+              const metric = diffAvg * 2 + partnerDiff * PARTNER_DIFF_W + posMan * POSMAN_W + lowPair * LOW_PAIR_W;
+              combinacionesValidas.push({ A, B, jugadores: grupo, nivelTotal: totA + totB, metric });
+            }
+          }
+        }
+      }
+    }
+  
+    // Ordenar combinaciones por mayor nivel total y menor métrica
+    combinacionesValidas.sort((a, b) => b.nivelTotal - a.nivelTotal || a.metric - b.metric);
+  
+    for (const g of sinFijos) {
+      const pick = combinacionesValidas.find(c => c.jugadores.every(j => libres.includes(j)));
+      if (!pick) break;
+      g.jugadores.push(...pick.jugadores);
+      pick.jugadores.forEach(p => libres.splice(libres.indexOf(p), 1));
+    }
+  
+    const matches = [];
+    for (const g of grupos) {
+      const p = g.jugadores;
+      if (p.length < 4) continue;
+      const perms = [
         [0, 1, 2, 3],
         [0, 2, 1, 3],
         [0, 3, 1, 2],
       ];
+      let best = null;
   
-      for (const [i1, i2, j1, j2] of combos) {
-        const t1 = [grupo[i1], grupo[i2]];
-        const t2 = [grupo[j1], grupo[j2]];
-  
+      for (const [i1, i2, j1, j2] of perms) {
+        const A = [p[i1], p[i2]];
+        const B = [p[j1], p[j2]];
         if (tipoPozo === "mixto") {
-          const esMixto = (team) => team.some((p) => p.genero === "hombre") && team.some((p) => p.genero === "mujer");
-          if (!esMixto(t1) || !esMixto(t2)) continue;
+          const ok = (t) => t.some((x) => x.genero === "hombre") && t.some((x) => x.genero === "mujer");
+          if (!ok(A) || !ok(B)) continue;
         }
   
-        const total1 = t1[0].nivel + t1[1].nivel;
-        const total2 = t2[0].nivel + t2[1].nivel;
-        const avg1 = total1 / 2;
-        const avg2 = total2 / 2;
-        const diffAvg = Math.abs(avg1 - avg2);
-        const partnerDiff = Math.abs(t1[0].nivel - t1[1].nivel) + Math.abs(t2[0].nivel - t2[1].nivel);
+        const totA = A[0].nivel + A[1].nivel;
+        const totB = B[0].nivel + B[1].nivel;
+        const avgA = totA / 2;
+        const avgB = totB / 2;
+        const diffAvg = Math.abs(avgA - avgB);
+        const partnerDiff = Math.abs(A[0].nivel - A[1].nivel) + Math.abs(B[0].nivel - B[1].nivel);
+        const lowPair = (A.every((x) => x.nivel <= LO_LVL) ? 1 : 0) + (B.every((x) => x.nivel <= LO_LVL) ? 1 : 0);
   
         let posMan = 0;
-        for (const tm of [t1, t2]) {
-          if (tm[0].posicion === tm[1].posicion && tm[0].posicion !== "Ambos") posMan++;
-          if (tm[0].mano_dominante === "zurdo" && tm[1].mano_dominante === "zurdo") posMan++;
+        for (const t of [A, B]) {
+          if (t[0].posicion === t[1].posicion && t[0].posicion !== "Ambos") posMan++;
+          if (t[0].mano === "zurdo" && t[1].mano === "zurdo") posMan++;
         }
   
-        const metric = diffAvg + partnerDiff * PARTNER_DIFF_WEIGHT + posMan * POSMAN_WEIGHT;
-        trials.push({ t1, t2, total1, total2, avg1, avg2, diffAvg, partnerDiff, posMan, metric });
+        const metric = diffAvg * 2 + partnerDiff * PARTNER_DIFF_W + posMan * POSMAN_W + lowPair * LOW_PAIR_W;
+        if (!best || metric < best.metric) best = { A, B, metric, avgA, avgB, totA, totB, diffAvg };
       }
   
-      return trials;
-    };
-  
-    /* ---------- 3. Separar fijos de libres ---------- */
-    const byPista = new Map();
-    const libres = [];
-    participantes.forEach((p) => {
-      const pista = Number(p.pista_fija);
-      if (pista >= 1) {
-        if (!byPista.has(pista)) byPista.set(pista, []);
-        byPista.get(pista).push(p);
-      } else {
-        libres.push(p);
-      }
-    });
-  
-    /* ---------- 4. Ordenar libres por género y nivel ---------- */
-    const hombres = libres.filter((p) => p.genero === "hombre").sort((a, b) => b.nivel - a.nivel);
-    const mujeres = libres.filter((p) => p.genero === "mujer").sort((a, b) => b.nivel - a.nivel);
-  
-    /* ---------- 5. Construir grupos de 4 con balance 2‑2 ---------- */
-    const grupos = Array.from({ length: numPistas }, (_, i) => ({ pista: i + 1, jugadores: byPista.get(i + 1) || [] }));
-    const take = (arr) => (arr.length ? arr.shift() : undefined);
-  
-    for (const g of grupos) {
-      while (g.jugadores.length < 4) {
-        const menCnt = g.jugadores.filter((p) => p.genero === "hombre").length;
-        const womenCnt = g.jugadores.length - menCnt;
-        let next;
-        if (menCnt < 2 && menCnt <= womenCnt) next = take(hombres);
-        else if (womenCnt < 2 && womenCnt < menCnt) next = take(mujeres);
-        if (!next) next = take(hombres) || take(mujeres);
-        if (!next) break;
-        g.jugadores.push(next);
+      if (best) {
+        const describe = (p) => `${p.nombre} (${p.sexo} ${p.mano === "zurdo" ? "🩲" : "✋"} ${p.nivel})`;
+        matches.push({
+          pista: g.pista,
+          teams: [best.A.map(describe), best.B.map(describe)],
+          totals: [best.totA, best.totB],
+          avgs: [best.avgA.toFixed(1), best.avgB.toFixed(1)],
+          diffAvg: best.diffAvg.toFixed(1),
+          diffTot: Math.abs(best.totA - best.totB),
+        });
       }
     }
   
-    while (grupos.length < numPistas && hombres.length >= 2 && mujeres.length >= 2) {
-      grupos.push({ pista: grupos.length + 1, jugadores: [take(hombres), take(hombres), take(mujeres), take(mujeres)] });
-    }
-  
-    /* ---------- 6. Ordenar grupos por media de nivel ---------- */
-    grupos.sort((a, b) => {
-      const avgA = a.jugadores.reduce((s, p) => s + p.nivel, 0) / a.jugadores.length;
-      const avgB = b.jugadores.reduce((s, p) => s + p.nivel, 0) / b.jugadores.length;
-      return avgB - avgA;
-    });
-  
-    /* ---------- 7. Evaluar emparejamientos ---------- */
-    const matches = [];
-    const debug = [];
-  
-    for (const g of grupos) {
-      const trials = buildTrials(g.jugadores);
-      const info = { pista: g.pista, initial: g.jugadores.map((j) => j.nombre), trialsCount: trials.length, selected: null };
-  
-      if (!trials.length) {
-        info.selected = { pairing: "❌ No se pudo emparejar", metric: "–", reason: "Combinaciones no mixtas", trialsConsidered: 0 };
-        debug.push(info);
-        continue;
-      }
-  
-      const bestMetric = Math.min(...trials.map((t) => t.metric));
-      const candidatos = trials.filter((t) => t.metric <= bestMetric + epsilon);
-      const elegido = candidatos[Math.floor(Math.random() * candidatos.length)];
-  
-      matches.push({
-        pista: g.pista,
-        teams: [elegido.t1, elegido.t2],
-        totals: [elegido.total1, elegido.total2],
-        avgs: [elegido.avg1.toFixed(1), elegido.avg2.toFixed(1)],
-        diffAvg: elegido.diffAvg.toFixed(1),
-        diffTot: Math.abs(elegido.total1 - elegido.total2),
-      });
-  
-      info.selected = {
-        pairing: `${elegido.t1[0].nombre} & ${elegido.t1[1].nombre} vs ${elegido.t2[0].nombre} & ${elegido.t2[1].nombre}`,
-        metric: elegido.metric.toFixed(2),
-        reason: elegido.posMan > 0 ? `Penalización posición/mano (${elegido.posMan})` : elegido.partnerDiff > 0 ? `Penalización nivel interno (${elegido.partnerDiff})` : "Sin penalización",
-        trialsConsidered: trials.length,
-      };
-      debug.push(info);
-    }
-  
-    return { matches, debug };
+    matches.sort((a, b) => a.pista - b.pista);
+    return { matches, debug: [] };
   }
   
