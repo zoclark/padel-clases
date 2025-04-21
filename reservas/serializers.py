@@ -13,9 +13,16 @@ class CaracteristicaSerializer(serializers.ModelSerializer):
         fields = ["id", "nombre"]
 
 # --- Perfil de alumno ---
+# --- Perfil de alumno ---
 class AlumnoPerfilSerializer(serializers.ModelSerializer):
     usuario = serializers.StringRelatedField(read_only=True)
     caracteristicas = CaracteristicaSerializer(many=True, read_only=True)
+    genero = serializers.CharField(source="usuario.genero", read_only=True)
+    fecha_nacimiento = serializers.DateField(source="usuario.fecha_nacimiento", read_only=True)
+    telefono = serializers.CharField(source="usuario.telefono", read_only=True)
+    localidad = serializers.CharField(source="usuario.localidad", read_only=True)
+    municipio = serializers.CharField(source="usuario.municipio", read_only=True)
+    email = serializers.EmailField(source="usuario.email", read_only=True)
 
     class Meta:
         model = AlumnoPerfil
@@ -86,3 +93,22 @@ class PozoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Pozo
         fields = "__all__"
+
+from rest_framework import serializers
+from .models import Usuario
+
+class UsuarioPerfilSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Usuario
+        fields = [
+            "username",
+            "email",
+            "first_name",
+            "last_name",
+            "genero",
+            "fecha_nacimiento",
+            "telefono",
+            "localidad",
+            "municipio",
+        ]
+        read_only_fields = ["username", "email"]  # si no quieres que se puedan editar

@@ -26,9 +26,7 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    const isLoginRoute = originalRequest.url.includes("/token/");
-
-    // ⛔️ Evita refrescar token si el error es del login
+    const isLoginRoute = originalRequest.url.endsWith("/token/");
     if (error.response?.status === 401 && !originalRequest._retry && !isLoginRoute) {
       originalRequest._retry = true;
       try {
@@ -43,23 +41,19 @@ api.interceptors.response.use(
         originalRequest.headers.Authorization = `Bearer ${newAccess}`;
         return api(originalRequest);
       } catch (refreshError) {
-        // ✅ Solo mostrar una vez el toast de sesión expirada
+        // Solo mostrar un toast una vez
         if (!sessionExpiredToastShown) {
           toast.error("Tu sesión ha caducado. Inicia sesión de nuevo.", {
             position: "top-center",
-            autoClose: 3000,
+            autoClose: 4000,
           });
           sessionExpiredToastShown = true;
           setTimeout(() => {
             sessionExpiredToastShown = false;
-          }, 5000);
+          }, 8000);
         }
 
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("refreshToken");
-        setTimeout(() => {
-          window.location.href = "/login";
-        }, 3000);
+        // No redirigir directamente
         return Promise.reject(refreshError);
       }
     }
@@ -67,5 +61,6 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
 
 export default api;

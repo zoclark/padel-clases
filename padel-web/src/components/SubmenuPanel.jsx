@@ -1,11 +1,18 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
+import { AuthContext } from "@/contexts/AuthContext";
 
 export default function SubmenuPanel({ subView, setSubView }) {
+  const { user } = useContext(AuthContext);
+
   const panelLinks = [
     { key: "atributos", label: "Atributos" },
     { key: "historial", label: "Historial" },
     { key: "reservas", label: "Reservas" },
     { key: "recursos", label: "Recursos" },
+    { key: "jugables", label: "Pozos" }, // 🔹 <- Añadir este
+    ...(user?.rol === "organizador"
+      ? [{ key: "organizar", label: "Organizar Pozos" }]
+      : []),
   ];
 
   const [open, setOpen] = useState(false);

@@ -1,36 +1,36 @@
+// src/App.jsx
 import { Routes, Route, Navigate } from "react-router-dom";
 import Landing from "./pages/Landing";
-import Login from "./pages/Login";
 import Entrenamiento from "./pages/Entrenamiento";
 import Registro from "./pages/Registro";
 import AlumnoPanel from "./pages/AlumnoPanel";
 import PanelOrganizador from "./pages/PanelOrganizador";
 import PanelProfesor from "./pages/PanelProfesor";
 import ProtectedRoute from "./components/ProtectedRoute";
+import LoginRouteWrapper from "./components/LoginRouteWrapper";
 
 import { AuthProvider, AuthContext } from "@/contexts/AuthContext";
 import { useContext } from "react";
 
-// Notificaciones
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-
-// Cookies
+import { Toaster } from "react-hot-toast";
 import CookieConsent from "react-cookie-consent";
 
 function AppRoutes() {
   const { rol, loading } = useContext(AuthContext);
 
+  // ⌛ opcional, un loader global al arrancar del todo
   if (loading) {
-    return <div className="text-white p-6">Cargando sesión...</div>;
+    return <div className="text-white p-6">Cargando sesión…</div>;
   }
 
   return (
     <Routes>
       <Route path="/" element={<Landing />} />
-      <Route path="/login" element={<Login />} />
       <Route path="/registro" element={<Registro />} />
       <Route path="/entrenamiento" element={<Entrenamiento />} />
+
+      {/* 🔒 ruta login protegida con el wrapper robusto */}
+      <Route path="/login" element={<LoginRouteWrapper />} />
 
       <Route
         path="/panel"
@@ -70,7 +70,7 @@ export default function App() {
   return (
     <AuthProvider>
       <AppRoutes />
-      <ToastContainer position="top-center" autoClose={3000} />
+      <Toaster position="top-center" toastOptions={{ duration: 3000 }} />
       <CookieConsent
         location="bottom"
         buttonText="Aceptar"

@@ -13,6 +13,8 @@ import RecursosAlumno from "@/components/RecursosAlumno";
 import useUserData from "@/hooks/useUserData";
 import useRecursosAlumno from "@/hooks/useRecursosAlumno";
 import useReservas from "@/hooks/useReservas";
+import PanelOrganizador from "@/pages/PanelOrganizador";
+import PozosJugables from "@/components/PozosJugables";
 
 const descripciones = {
 "Resistencia": "Capacidad de mantener un rendimiento constante durante partidos largos. Es clave para no bajar el ritmo en el tercer set.",
@@ -183,7 +185,7 @@ export default function AlumnoPanel() {
 
       <div className="pt-20" />
       <div className="pt-2 px-2">
-        <SubmenuPanel subView={subView} setSubView={setSubView} />
+        <SubmenuPanel subView={subView} setSubView={setSubView} rol={perfil.rol} />
       </div>
 
       <div className="max-w-7xl mx-auto px-2 sm:px-4 pb-8 pt-4">
@@ -290,6 +292,21 @@ export default function AlumnoPanel() {
             )}
           </div>
         )}
+
+        {subView === "organizar" && perfil.rol === "organizador" && (
+          <div className="bg-black/30 backdrop-blur rounded-xl shadow-2xl p-3">
+            <h2 className="text-lg font-bold mb-1">Gestión de Pozos</h2>
+            <PanelOrganizador />
+          </div>
+        )}
+
+{subView === "jugables" && (
+          <div className="bg-black/30 backdrop-blur rounded-xl shadow-2xl p-3">
+            <h2 className="text-lg font-bold mb-1">Listado de Pozos</h2>
+            <PozosJugables />
+          </div>
+        )}     
+
       </div>
     </div>
   );

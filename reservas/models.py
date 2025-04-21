@@ -7,13 +7,29 @@ from django.contrib.auth import get_user_model
 
 # Usuario personalizado
 class Usuario(AbstractUser):
-    ROLES = (
-        ('alumno', 'Alumno'),
-        ('profesor', 'Profesor'),
-        ('organizador', 'Organizador'),
+    ROL_CHOICES = (
+        ("alumno", "Alumno"),
+        ("profesor", "Profesor"),
+        ("organizador", "Organizador"),
     )
-    rol = models.CharField(max_length=15, choices=ROLES)
 
+    GENERO_CHOICES = (
+        ("hombre", "Hombre"),
+        ("mujer", "Mujer"),
+        ("otro", "Otro"),
+    )
+
+    rol = models.CharField(max_length=20, choices=ROL_CHOICES, default="alumno")
+    genero = models.CharField(max_length=10, choices=GENERO_CHOICES, default="hombre")
+
+    # Nuevos campos personales
+    fecha_nacimiento = models.DateField(null=True, blank=True)
+    telefono = models.CharField(max_length=20, blank=True)
+    localidad = models.CharField(max_length=100, blank=True)
+    municipio = models.CharField(max_length=100, blank=True)
+
+    def __str__(self):
+        return self.username
 # Clase creada por un profesor
 class Clase(models.Model):
     fecha = models.DateTimeField()
@@ -185,12 +201,23 @@ class RecursoAlumno(models.Model):
 Usuario = get_user_model()
 
 class Pozo(models.Model):
+
+
+    titulo = models.CharField(
+        max_length=100,
+        verbose_name="Título del Pozo",
+        blank=True,
+        help_text="Nombre amigable para identificar este pozo"
+    )
+
     TIPO_CHOICES = [
         ("mixto", "Mixto"),
         ("parejas", "Por Parejas"),
         ("hombres", "Solo Hombres"),
         ("mujeres", "Solo Mujeres"),
     ]
+
+
 
     fecha = models.DateField()
     hora_inicio = models.TimeField()
@@ -211,9 +238,21 @@ class ParticipantePozo(models.Model):
     genero = models.CharField(max_length=10, choices=[("hombre", "Hombre"), ("mujer", "Mujer")])
     pista_fija = models.PositiveIntegerField(null=True, blank=True)  # Si debe empezar en pista X
 
+    # 🆕 Campo nuevo
+    mano_dominante = models.CharField(
+        max_length=10,
+        choices=[("diestro", "Diestro"), ("zurdo", "Zurdo")],
+        default="diestro"
+    )
+
+    posicion = models.CharField(
+        max_length=10,
+        choices=[("Reves","Reves"),("Drive","Drive"),("Ambos","Ambos")],
+        default="Ambos"
+    )
+
     def __str__(self):
         return f"{self.nombre} - Nivel {self.nivel}"
-
 
 class Afinidad(models.Model):
     participante = models.ForeignKey(ParticipantePozo, related_name="afinidades", on_delete=models.CASCADE)

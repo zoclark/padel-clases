@@ -13,7 +13,7 @@ from .serializers import (
     ReservaSerializer, PozoSerializer, ParticipantePozoSerializer,
     AfinidadSerializer
 )
-
+from .serializers import UsuarioPerfilSerializer
 # ================= REGISTRO Y PERFIL ===================
 @api_view(["POST"])
 def registro_usuario(request):
@@ -39,15 +39,18 @@ def registro_usuario(request):
 @permission_classes([IsAuthenticated])
 def perfil_usuario(request):
     data = {
-        "username": request.user.username,
-        "rol": request.user.rol,
+        "rol": request.user.rol,  # 👈 esto siempre
     }
+
     if request.user.rol == "alumno":
         try:
             perfil = AlumnoPerfil.objects.get(usuario=request.user)
             data.update(AlumnoPerfilSerializer(perfil).data)
         except AlumnoPerfil.DoesNotExist:
             data["error"] = "Perfil de alumno no encontrado"
+    else:
+        data.update(UsuarioPerfilSerializer(request.user).data)
+
     return Response(data)
 
 # ================ ENTRENAMIENTOS =======================
@@ -146,9 +149,36 @@ def participantes_pozo(request, pozo_id):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def agregar_participante(request):
-    serializer = ParticipantePozoSerializer(data=request.data)
+    data = request.data.copy()
+
+    # Si es un usuario registrado, sobreescribimos el género
+    if request.user and request.user.is_authenticated:
+        print("🧪 Usuario:", request.user.username)
+        print("🧪 Género:", request.user.genero)
+        data["usuario"] = request.user.id
+        if not request.user.genero:
+            return Response({"error": "Tu perfil no tiene género definido."}, status=400)
+        data["genero"] = request.user.genero
+
+    # Normaliza pista_fija
+    if "pista_fija" in data and data["pista_fija"]:
+        try:
+            if int(data["pista_fija"]) < 1:
+                data["pista_fija"] = None
+        except ValueError:
+            data["pista_fija"] = None
+
+    serializer = ParticipantePozoSerializer(data=data)
     if serializer.is_valid():
-        serializer.save()
+        participante = serializer.save()
+
+        JugadorPozo.objects.create(
+            pozo=participante.pozo,
+            nombre=participante.nombre,
+            nivel=int(participante.nivel),
+            registrado=bool(data.get("usuario"))
+        )
+
         return Response(serializer.data, status=201)
     return Response(serializer.errors, status=400)
 
@@ -167,3 +197,70 @@ def crear_afinidad(request):
         serializer.save()
         return Response(serializer.data, status=201)
     return Response(serializer.errors, status=400)
+
+
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status
+from .models import ParticipantePozo
+from .serializers import ParticipantePozoSerializer
+
+@api_view(["PUT"])
+def actualizar_participante(request, participante_id):
+    try:
+        participante = ParticipantePozo.objects.get(id=participante_id)
+    except ParticipantePozo.DoesNotExist:
+        return Response({"error": "Participante no encontrado"}, status=404)
+
+    data = request.data.copy()
+
+    # 🔒 También limpiamos pista_fija si es 0 o menor
+    if "pista_fija" in data and data["pista_fija"]:
+        try:
+            if int(data["pista_fija"]) < 1:
+                data["pista_fija"] = None
+        except ValueError:
+            data["pista_fija"] = None
+
+    serializer = ParticipantePozoSerializer(participante, data=data, partial=True)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data)
+    return Response(serializer.errors, status=400)
+
+@api_view(["DELETE"])
+def eliminar_participante(request, participante_id):
+    try:
+        participante = ParticipantePozo.objects.get(id=participante_id)
+    except ParticipantePozo.DoesNotExist:
+        return Response({"error": "Participante no encontrado"}, status=404)
+
+    participante.delete()
+    return Response({"mensaje": "Participante eliminado"}, status=204)
+
+
+
+@api_view(["GET", "PUT", "PATCH"])
+@permission_classes([IsAuthenticated])
+def detalle_pozo(request, pozo_id):
+    """
+    GET  /api/pozos/<pozo_id>/     → detalle del pozo
+    PUT  /api/pozos/<pozo_id>/     → reemplaza todos los campos editables
+    PATCH /api/pozos/<pozo_id>/     → actualiza parcialmente
+    """
+    try:
+        pozo = Pozo.objects.get(id=pozo_id)
+    except Pozo.DoesNotExist:
+        return Response({"error": "Pozo no encontrado"}, status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == "GET":
+        serializer = PozoSerializer(pozo)
+        return Response(serializer.data)
+
+    # PUT o PATCH
+    partial = (request.method == "PATCH")
+    serializer = PozoSerializer(pozo, data=request.data, partial=partial)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
