@@ -1,8 +1,15 @@
 # reservas/serializers.py
 from rest_framework import serializers
 from .models import (
-    AlumnoPerfil, Caracteristica, TrainingSession, RecursoAlumno, 
-    Reserva, Pozo, ParticipantePozo, Afinidad
+    AlumnoPerfil,
+    Caracteristica,
+    TrainingSession,
+    RecursoAlumno,
+    Reserva,
+    Pozo,
+    ParticipantePozo,
+    Afinidad,
+    Usuario,
 )
 import re
 
@@ -12,7 +19,6 @@ class CaracteristicaSerializer(serializers.ModelSerializer):
         model = Caracteristica
         fields = ["id", "nombre"]
 
-# --- Perfil de alumno ---
 # --- Perfil de alumno ---
 class AlumnoPerfilSerializer(serializers.ModelSerializer):
     usuario = serializers.StringRelatedField(read_only=True)
@@ -26,30 +32,30 @@ class AlumnoPerfilSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AlumnoPerfil
-        fields = '__all__'
+        fields = "__all__"
 
 # --- Entrenamientos ---
 class TrainingSessionSerializer(serializers.ModelSerializer):
-    fecha = serializers.DateField(source='date', format='%Y-%m-%d', read_only=True)
+    fecha = serializers.DateField(source="date", format="%Y-%m-%d", read_only=True)
 
     class Meta:
         model = TrainingSession
-        fields = '__all__'
+        fields = "__all__"
 
 # --- Recursos personalizados ---
 class RecursoAlumnoSerializer(serializers.ModelSerializer):
     class Meta:
         model = RecursoAlumno
-        fields = '__all__'
+        fields = "__all__"
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
 
-        if not representation['thumbnail']:
+        if not representation["thumbnail"]:
             video_id = self.extract_video_id(instance.url)
             if video_id:
                 thumbnail_url = f"https://img.youtube.com/vi/{video_id}/maxresdefault.jpg"
-                representation['thumbnail'] = thumbnail_url
+                representation["thumbnail"] = thumbnail_url
                 print(f"Generando thumbnail para el recurso: {representation['titulo']}, thumbnail: {thumbnail_url}")
             else:
                 print(f"No se pudo extraer el ID de YouTube para la URL: {instance.url}")
@@ -70,33 +76,55 @@ class ReservaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Reserva
-        fields = '__all__'
+        fields = "__all__"
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
-        representation['clase'] = instance.clase.descripcion
+        representation["clase"] = instance.clase.descripcion
         return representation
 
-# --- Pozos y Participantes ---
+# --- Participantes de Pozo ---
 class ParticipantePozoSerializer(serializers.ModelSerializer):
+    juega_con = serializers.PrimaryKeyRelatedField(
+        many=True,
+        queryset=ParticipantePozo.objects.all(),
+        required=False
+    )
+    juega_contra = serializers.PrimaryKeyRelatedField(
+        many=True,
+        queryset=ParticipantePozo.objects.all(),
+        required=False
+    )
+    no_juega_con = serializers.PrimaryKeyRelatedField(
+        many=True,
+        queryset=ParticipantePozo.objects.all(),
+        required=False
+    )
+    no_juega_contra = serializers.PrimaryKeyRelatedField(
+        many=True,
+        queryset=ParticipantePozo.objects.all(),
+        required=False
+    )
+
     class Meta:
         model = ParticipantePozo
         fields = "__all__"
 
+# --- Afinidades de Pozo ---
 class AfinidadSerializer(serializers.ModelSerializer):
     class Meta:
         model = Afinidad
         fields = "__all__"
 
+# --- Pozo con sus participantes ---
 class PozoSerializer(serializers.ModelSerializer):
     participantes = ParticipantePozoSerializer(many=True, read_only=True)
+
     class Meta:
         model = Pozo
         fields = "__all__"
 
-from rest_framework import serializers
-from .models import Usuario
-
+# --- Perfil de usuario (otros endpoints) ---
 class UsuarioPerfilSerializer(serializers.ModelSerializer):
     class Meta:
         model = Usuario
@@ -111,4 +139,4 @@ class UsuarioPerfilSerializer(serializers.ModelSerializer):
             "localidad",
             "municipio",
         ]
-        read_only_fields = ["username", "email"]  # si no quieres que se puedan editar
+        read_only_fields = ["username", "email"]

@@ -12,32 +12,35 @@ from .views import actualizar_participante, eliminar_participante, detalle_pozo,
 
 
 urlpatterns = [
+    # Auth / Perfil
     path("token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("registro/", registro_usuario),
     path("perfil/", perfil_usuario),
+
+
+
+    # Entrenamientos / Recursos / Reservas
     path("historial/", historial_entrenamientos),
-    path("recursos-alumno/", recursos_alumno),  # Añade la ruta para los recursos asignados
+    path("recursos-alumno/", recursos_alumno),
     path("reservas/", obtener_reservas),
+
+
+    # Pozos & Participantes
     path("pozos/", listar_pozos),
     path("pozos/crear/", crear_pozo),
-    path('pozos/<int:pozo_id>/', detalle_pozo,           name='detalle_pozo'),
-    
+    path("pozos/<int:pozo_id>/", detalle_pozo, name="detalle_pozo"),
     path("pozos/<int:pozo_id>/participantes/", participantes_pozo),
     path("pozos/participantes/agregar/", agregar_participante),
+    path("pozos/participantes/<int:participante_id>/", actualizar_participante, name="actualizar_participante"),
+    path("pozos/participantes/<int:participante_id>/eliminar/", eliminar_participante, name="eliminar_participante"),
+
+    # Afinidades
     path("afinidades/<int:usuario_id>/", afinidades_usuario),
     path("pozos/afinidades/crear/", crear_afinidad),
-     path("pozos/participantes/<int:participante_id>/", actualizar_participante, name="actualizar_participante"),
-    path("pozos/participantes/<int:participante_id>/eliminar/", eliminar_participante, name="eliminar_participante"),
-]
 
+    # Importar Excel
+    path("pozos/<int:pozo_id>/importar_excel/", importar_participantes_excel, name="importar_participantes_excel"),
 
-# reservas/urls.py
-urlpatterns += [
-    path(
-        "pozos/<int:pozo_id>/importar_excel/",
-        importar_participantes_excel,
-        name="importar_participantes_excel",
-    ),
 ]
 
