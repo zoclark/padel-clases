@@ -15,7 +15,7 @@ import { generatePairings } from "@/helpers/pairings";
  *   – Sólo hace una petición de carga cuando cambia `pozoId`.
  *   – Notifica los cambios de lista al padre mediante un callback MEMOIZADO.
  *   – Después de altas/bajas/ediciones vuelve a sincronizar la lista.
- *   – 🆕  Permite importar participantes desde un Excel.
+ *   – Permite importar participantes desde un Excel.
  */
 export default function PozoParticipantes({
   pozoId,
@@ -53,13 +53,14 @@ export default function PozoParticipantes({
     if (!pozoId) return;
     (async () => {
       try {
-        const [{ data: part }, { data: p }] = await Promise.all([
+        const [{ data: rawPart }, { data: p }] = await Promise.all([
           api.get(`/pozos/${pozoId}/participantes/`),
           api.get(`/pozos/${pozoId}/`),
         ]);
-        setParticipantes(
-          part.sort((a, b) => a.nombre.localeCompare(b.nombre))
-        );
+        const part = rawPart
+        .map(u => ({ ...u, posicion: String(u.posicion).toLowerCase() }))
+                 .sort((a, b) => a.nombre.localeCompare(b.nombre));
+               setParticipantes(part);
         setNumPistas(p.num_pistas);
         setTipoPozo(p.tipo);
       } catch {
@@ -119,7 +120,7 @@ export default function PozoParticipantes({
       nombre: nuevo.nombre.trim(),
       nivel: Number(nuevo.nivel),
       genero: nuevo.genero,
-      posicion: nuevo.posicion,
+      posicion: nuevo.posicion.toLowerCase(),
       mano_dominante: nuevo.mano_dominante,
     };
     if (nuevo.pista_fija) {
@@ -188,7 +189,7 @@ export default function PozoParticipantes({
       nombre: edicion.nombre.trim(),
       nivel: Number(edicion.nivel),
       genero: edicion.genero,
-      posicion: edicion.posicion,
+      posicion: edicion.posicion.toLowerCase(),
       mano_dominante: edicion.mano_dominante,
       pista_fija: pista,
       juega_con: edicion.juega_con || [],
@@ -198,7 +199,6 @@ export default function PozoParticipantes({
     };
 
     try {
-      // <-- ruta CORRECTA sin pozoId anidado -->
       await api.put(`/pozos/participantes/${id}/`, payload);
 
       // 2) Bidireccionalidad: actualizo cada relación en los demás
@@ -208,13 +208,12 @@ export default function PozoParticipantes({
         "no_juega_con",
         "no_juega_contra",
       ];
-      const original = participantes; // estado antes de editar
+      const original = participantes; // snapshot antes de editar
 
       await Promise.all(
         original
           .filter((o) => o.id !== id)
           .map(async (other) => {
-            // clono el payload completo de 'other'
             const otherPayload = {
               pozo: pozoId,
               nombre: other.nombre,
@@ -228,7 +227,6 @@ export default function PozoParticipantes({
               no_juega_con: [...(other.no_juega_con || [])],
               no_juega_contra: [...(other.no_juega_contra || [])],
             };
-            // para cada clave, añado o quito el id de 'id'
             claves.forEach((key) => {
               const listaOrig = other[key] || [];
               const quiere = edicion[key]?.includes(other.id);
@@ -238,11 +236,7 @@ export default function PozoParticipantes({
                 otherPayload[key] = listaOrig.filter((x) => x !== id);
               }
             });
-            // <-- ruta CORRECTA -->
-            await api.put(
-              `/pozos/participantes/${other.id}/`,
-              otherPayload
-            );
+            await api.put(`/pozos/participantes/${other.id}/`, otherPayload);
           })
       );
 
@@ -257,7 +251,6 @@ export default function PozoParticipantes({
   const handleEliminar = async (id) => {
     if (!confirm("¿Eliminar participante?")) return;
     try {
-      // <-- ruta CORRECTA -->
       await api.delete(`/pozos/participantes/${id}/eliminar/`);
       toast.success("🗑️ Participante eliminado");
       refreshLista();
@@ -272,11 +265,9 @@ export default function PozoParticipantes({
     const formData = new FormData();
     formData.append("file", excelFile);
     try {
-      await api.post(
-        `/pozos/${pozoId}/importar_excel/`,
-        formData,
-        { headers: { "Content-Type": "multipart/form-data" } }
-      );
+      await api.post(`/pozos/${pozoId}/importar_excel/`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
       toast.success("✅ Participantes importados");
       setExcelFile(null);
       refreshLista();
@@ -287,11 +278,7 @@ export default function PozoParticipantes({
 
   /* ---------------- EMPAREJAMIENTOS -------------------- */
   const onPair = () => {
-    const { matches } = generatePairings(
-      participantes,
-      numPistas,
-      tipoPozo
-    );
+    const { matches } = generatePairings(participantes, numPistas, tipoPozo);
     setEmparejamientos(matches);
   };
 
@@ -315,8 +302,8 @@ export default function PozoParticipantes({
       )}
       {!pozoCompleto && (
         <div className="text-blue-300 mb-4">
-          Faltan {maxParticipantes - participantes.length} participantes
-          para completar el pozo.
+          Faltan {maxParticipantes - participantes.length} participantes para
+          completar el pozo.
         </div>
       )}
 
@@ -421,56 +408,87 @@ export default function PozoParticipantes({
                 </select>
 
                 {/* —— Relaciones M2M —— */}
-                {[  
-                  { key: "juega_con",       label: "Juega con",       max: 1,  conflicts: ["juega_contra","no_juega_con"] },
-                  { key: "juega_contra",    label: "Juega contra",    max: 2,  conflicts: ["juega_con","no_juega_contra"] },
-                  { key: "no_juega_con",    label: "No juega con",    max: Infinity, conflicts: ["juega_con"] },
-                  { key: "no_juega_contra", label: "No juega contra", max: Infinity, conflicts: ["juega_contra"] },
+                {[
+                  {
+                    key: "juega_con",
+                    label: "Juega con",
+                    max: 1,
+                    conflicts: ["juega_contra", "no_juega_con"],
+                  },
+                  {
+                    key: "juega_contra",
+                    label: "Juega contra",
+                    max: 2,
+                    conflicts: ["juega_con", "no_juega_contra"],
+                  },
+                  {
+                    key: "no_juega_con",
+                    label: "No juega con",
+                    max: Infinity,
+                    conflicts: ["juega_con"],
+                  },
+                  {
+                    key: "no_juega_contra",
+                    label: "No juega contra",
+                    max: Infinity,
+                    conflicts: ["juega_contra"],
+                  },
                 ].map(({ key, label, max, conflicts }) => (
                   <div key={key}>
-                    <label className="block text-xs text-white/80">{label}</label>
+                    <label className="block text-xs text-white/80">
+                      {label}
+                    </label>
                     <ul className="space-y-1 max-h-32 overflow-auto">
                       {participantes
-                        .filter(x => x.id !== p.id)
-                        .map(x => {
+                        .filter((x) => x.id !== p.id)
+                        .map((x) => {
                           const selected = (edicion[key] || []).includes(x.id);
                           return (
-                            <li key={x.id} className="flex items-center justify-between text-black text-xs bg-white/80 rounded px-2 py-1">
+                            <li
+                              key={x.id}
+                              className="flex items-center justify-between text-black text-xs bg-white/80 rounded px-2 py-1"
+                            >
                               <span>{x.nombre}</span>
                               {selected ? (
                                 <FaMinusCircle
                                   className="text-red-600 cursor-pointer"
-                                  onClick={() => {
-                                    setEdicion(v => ({
+                                  onClick={() =>
+                                    setEdicion((v) => ({
                                       ...v,
-                                      [key]: v[key].filter(id => id !== x.id)
-                                    }));
-                                  }}
+                                      [key]: v[key].filter((id) => id !== x.id),
+                                    }))
+                                  }
                                 />
                               ) : (
                                 <FaPlusCircle
                                   className="text-green-600 cursor-pointer"
                                   onClick={() => {
-                                    const curr = v => v[key] || [];
+                                    const curr = (v) => v[key] || [];
                                     if (curr(edicion).length >= max) {
-                                      return toast.error(`Máximo ${max} en "${label}"`);
+                                      return toast.error(
+                                        `Máximo ${max} en "${label}"`
+                                      );
                                     }
                                     for (let c of conflicts) {
                                       if ((edicion[c] || []).includes(x.id)) {
-                                        return toast.error(`No puedes mezclar "${label}" con "${c.replace(/_/g," ")}`);
+                                        return toast.error(
+                                          `No puedes mezclar "${label}" con "${c.replace(
+                                            /_/g,
+                                            " "
+                                          )}"`
+                                        );
                                       }
                                     }
-                                    setEdicion(v => ({
+                                    setEdicion((v) => ({
                                       ...v,
-                                      [key]: [...curr(v), x.id]
+                                      [key]: [...curr(v), x.id],
                                     }));
                                   }}
                                 />
                               )}
                             </li>
                           );
-                        })
-                      }
+                        })}
                       {!(edicion[key] || []).length && (
                         <li className="text-xxs text-white/50">–</li>
                       )}
@@ -501,15 +519,24 @@ export default function PozoParticipantes({
                   <div>Nivel: {p.nivel}</div>
                   <div>Pista: {p.pista_fija ?? "-"}</div>
                   <div>Posición: {p.posicion}</div>
-                  <div>Género: {p.genero === "hombre" ? "👦 Hombre" : "👧 Mujer"}</div>
-                  <div>{p.mano_dominante === "zurdo" ? "🫲 Zurdo" : "✋ Diestro"}</div>
+                  <div>
+                    Género:{" "}
+                    {p.genero === "hombre" ? "👦 Hombre" : "👧 Mujer"}
+                  </div>
+                  <div>
+                    {p.mano_dominante === "zurdo" ? "🫲 Zurdo" : "✋ Diestro"}
+                  </div>
                 </div>
                 <div className="mt-1 text-sm font-normal space-y-0.5">
                   <div>
                     <strong>Juega con:</strong>{" "}
                     {p.juega_con.length
                       ? p.juega_con
-                          .map(id => participantes.find(u => u.id === id)?.nombre || id)
+                          .map(
+                            (id) =>
+                              participantes.find((u) => u.id === id)?.nombre ||
+                              id
+                          )
                           .join(", ")
                       : "–"}
                   </div>
@@ -517,7 +544,11 @@ export default function PozoParticipantes({
                     <strong>Juega contra:</strong>{" "}
                     {p.juega_contra.length
                       ? p.juega_contra
-                          .map(id => participantes.find(u => u.id === id)?.nombre || id)
+                          .map(
+                            (id) =>
+                              participantes.find((u) => u.id === id)?.nombre ||
+                              id
+                          )
                           .join(", ")
                       : "–"}
                   </div>
@@ -525,7 +556,11 @@ export default function PozoParticipantes({
                     <strong>No juega con:</strong>{" "}
                     {p.no_juega_con.length
                       ? p.no_juega_con
-                          .map(id => participantes.find(u => u.id === id)?.nombre || id)
+                          .map(
+                            (id) =>
+                              participantes.find((u) => u.id === id)?.nombre ||
+                              id
+                          )
                           .join(", ")
                       : "–"}
                   </div>
@@ -533,7 +568,11 @@ export default function PozoParticipantes({
                     <strong>No juega contra:</strong>{" "}
                     {p.no_juega_contra.length
                       ? p.no_juega_contra
-                          .map(id => participantes.find(u => u.id === id)?.nombre || id)
+                          .map(
+                            (id) =>
+                              participantes.find((u) => u.id === id)?.nombre ||
+                              id
+                          )
                           .join(", ")
                       : "–"}
                   </div>
