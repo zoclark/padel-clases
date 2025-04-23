@@ -141,10 +141,10 @@ export function generatePairings(jugadores, numPistas, tipoPozo = "mixto", epsil
                 !((A.includes(X)&&A.includes(Y))||(B.includes(X)&&B.includes(Y)))) ok=false;
             if ((X.juega_contra.includes(Y.id)||Y.juega_contra.includes(X.id)) &&
                 !((A.includes(X)&&B.includes(Y))||(A.includes(Y)&&B.includes(X)))) ok=false;
-            if ((X.no_juega_con.includes(Y.id)||Y.no_juega_con.includes(X.id)) &&
-                ((A.includes(X)&&A.includes(Y))||(B.includes(X)&&B.includes(Y)))) ok=false;
-            if ((X.no_juega_contra.includes(Y.id)||Y.no_juega_contra.includes(X.id)) &&
-                ((A.includes(X)&&B.includes(Y))||(A.includes(Y)&&B.includes(X)))) ok=false;
+            if (X.no_juega_con.includes(Y.id) &&
+                ((A.includes(X) && A.includes(Y)) || (B.includes(X) && B.includes(Y)))) ok = false;
+            if (X.no_juega_contra.includes(Y.id) &&
+                ((A.includes(X) && B.includes(Y)) || (B.includes(X) && A.includes(Y)))) ok = false;
             if (!ok) break;
           }
           if (!ok) break;
@@ -237,71 +237,61 @@ export function generatePairings(jugadores, numPistas, tipoPozo = "mixto", epsil
       return a.diffAvg - b.diffAvg;
     });
     freeMatches.forEach((m,i)=>m.basePista = freePistas[i]);
-  
- // 8) Ajuste de adyacencias con ventana flexible (±1,±3,±5…),
-  //     respetando orden inicial de avgOverall.
-  const all = [...fixedMatches, ...freeMatches];
 
-  // construimos el array de parejas prohibidas
-  const bad = [];
-  for (const p of players) {
-    for (const b of p.no_juega_con) {
-      if (p.no_juega_contra.includes(b)) bad.push([p.id, b]);
-    }
-  }
-
-  // deltas posibles y set para no reprocesar
-  const deltas    = [1, -1, 3, -3, 5, -5];
-  const processed = new Set();
-
-  for (const [a, b] of bad) {
-    if (processed.has(a) || processed.has(b)) continue;
-
-    const iA = all.findIndex(m => m.ids[0].includes(a) || m.ids[1].includes(a));
-    const iB = all.findIndex(m => m.ids[0].includes(b) || m.ids[1].includes(b));
-    if (iA < 0 || iB < 0) continue;
-
-    // high/low según avgOverall
-    const idxHigh = all[iA].avgOverall > all[iB].avgOverall ? iA : iB;
-    const idxLow  = idxHigh === iA ? iB : iA;
-    const matchLow  = all[idxLow];
-    const avgLow    = matchLow.avgOverall;
-
-    // buscamos el mejor delta que:
-    // 1) acerque idxLow a idxHigh (|newIdx - idxHigh| en deltas)
-    // 2) si avgLow > avgDest entonces newIdx < idxHigh (sube),
-    //    si avgLow < avgDest entonces newIdx > idxHigh (baja),
-    //    manteniendo orden descendente.
-    let bestMove = null, bestCost = Infinity;
-    for (const d of deltas) {
-      const t = idxHigh + d;
-      if (t < 0 || t >= all.length) continue;
-      const avgDest = all[t].avgOverall;
-      // condicion de dirección
-      if (avgLow > avgDest && t > idxHigh) continue;
-      if (avgLow < avgDest && t < idxHigh) continue;
-      const cost = Math.abs(idxLow - t);
-      if (cost < bestCost) {
-        bestCost = cost;
-        bestMove = t;
+    // 8) Ajuste de adyacencias (corregido para evitar duplicados)
+    const all = [...fixedMatches, ...freeMatches];
+    const bad = [];
+    for (const p of players) {
+      for (const b of p.no_juega_con) {
+        if (p.no_juega_contra.includes(b)) bad.push([p.id, b]);
       }
     }
+    const deltas           = [1, -1, 3, -3, 5, -5];
+    const processedPlayers = new Set();
+    const processedMatches = new Set();
 
-    if (bestMove != null) {
-      // extraemos y volvemos a insertar en bestMove
-      all.splice(idxLow, 1);
-      const insertPos = bestMove > idxLow ? bestMove - 1 : bestMove;
-      all.splice(insertPos, 0, matchLow);
+    for (const [a, b] of bad) {
+      if (processedPlayers.has(a) || processedPlayers.has(b)) continue;
+      const iA = all.findIndex(m => m.ids[0].includes(a) || m.ids[1].includes(a));
+      const iB = all.findIndex(m => m.ids[0].includes(b) || m.ids[1].includes(b));
+      if (iA < 0 || iB < 0 || iA === iB) continue;
+
+      const idxHigh = all[iA].avgOverall > all[iB].avgOverall ? iA : iB;
+      const idxLow  = idxHigh === iA ? iB : iA;
+      const matchLow  = all[idxLow];
+      const avgLow    = matchLow.avgOverall;
+
+      if (processedMatches.has(matchLow)) continue;
+
+      // buscamos la nueva posición ideal
+      let bestMove = null, bestCost = Infinity;
+      for (const d of deltas) {
+        const t = idxHigh + d;
+        if (t < 0 || t >= all.length) continue;
+        const avgDest = all[t].avgOverall;
+        if (avgLow > avgDest && t > idxHigh) continue;
+        if (avgLow < avgDest && t < idxHigh) continue;
+        const cost = Math.abs(idxLow - t);
+        if (cost < bestCost) {
+          bestCost = cost;
+          bestMove = t;
+        }
+      }
+      // si encontramos sitio, mover
+      if (bestMove != null) {
+        all.splice(idxLow, 1);
+        const insertPos = bestMove > idxLow ? bestMove - 1 : bestMove;
+        all.splice(insertPos, 0, matchLow);
+        processedMatches.add(matchLow);
+      }
+      processedPlayers.add(a);
+      processedPlayers.add(b);
     }
 
-    processed.add(a);
-    processed.add(b);
-  }
-
-  // 8.b) reasignar pistas 1..numPistas según nuevo orden
-  all.forEach((m, idx) => {
-    m.basePista = idx + 1;
-  });
+    // 8.b) reasignar pistas 1..numPistas según nuevo orden
+    all.forEach((m, idx) => {
+      m.basePista = idx + 1;
+    });
   
     // 9) Formatear UI
     function formatPlayer(p) {
@@ -325,4 +315,3 @@ export function generatePairings(jugadores, numPistas, tipoPozo = "mixto", epsil
   
     return { matches, debug };
   }
-  

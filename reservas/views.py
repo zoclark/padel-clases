@@ -148,7 +148,6 @@ def agregar_participante(request):
     # género si viene de usuario autenticado
     if request.user.is_authenticated:
         data["usuario"] = request.user.id
-        data["genero"] = request.user.genero or data.get("genero","hombre")
 
     # normalizaciones básicas
     for campo in ("nombre","genero","mano_dominante"):
@@ -161,9 +160,9 @@ def agregar_participante(request):
     if "posicion" in data:
         clave = data["posicion"].strip().lower()
     mapping = {
-        "Reves":  "reves",
-        "Drive":  "drive",
-        "Ambos":  "ambos",
+        "reves":  "reves",
+        "drive":  "drive",
+        "ambos":  "ambos",
     }
     data["posicion"] = mapping.get(clave, "ambos")
 
@@ -243,7 +242,7 @@ def actualizar_participante(request, participante_id):
         except:
             pass
     if "posicion" in data:
-        mp = {"Reves":"reves","Drive":"drive","Ambos":"ambos"}
+        mp = {"reves":"reves","drive":"drive","ambos":"ambos"}
         data["posicion"] = mp.get(data["posicion"].strip().lower(), data["posicion"])
     if "pista_fija" in data:
         try:
