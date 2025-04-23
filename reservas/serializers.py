@@ -10,6 +10,7 @@ from .models import (
     ParticipantePozo,
     Afinidad,
     Usuario,
+    AlumnoPerfilEvolucion,
 )
 import re
 
@@ -29,7 +30,7 @@ class AlumnoPerfilSerializer(serializers.ModelSerializer):
     localidad = serializers.CharField(source="usuario.localidad", read_only=True)
     municipio = serializers.CharField(source="usuario.municipio", read_only=True)
     email = serializers.EmailField(source="usuario.email", read_only=True)
-
+    onboarding_completado = serializers.BooleanField(source="usuario.onboarding_completado", read_only=True)  # <--- AÑADE ESTO
     class Meta:
         model = AlumnoPerfil
         fields = "__all__"
@@ -138,5 +139,13 @@ class UsuarioPerfilSerializer(serializers.ModelSerializer):
             "telefono",
             "localidad",
             "municipio",
+            "onboarding_completado",   # <-- Añade aquí
         ]
         read_only_fields = ["username", "email"]
+
+
+# serializers.py
+class AlumnoPerfilEvolucionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AlumnoPerfilEvolucion
+        fields = "__all__"

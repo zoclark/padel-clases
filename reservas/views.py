@@ -10,14 +10,14 @@ import pandas as pd
 
 from .models import (
     Usuario, AlumnoPerfil, TrainingSession, RecursoAlumno,
-    Reserva, Pozo, ParticipantePozo, Afinidad, JugadorPozo
+    Reserva, Pozo, ParticipantePozo, Afinidad, JugadorPozo, AlumnoPerfilEvolucion
 )
 from .serializers import (
     AlumnoPerfilSerializer, TrainingSessionSerializer, RecursoAlumnoSerializer,
     ReservaSerializer, PozoSerializer, ParticipantePozoSerializer,
-    AfinidadSerializer, UsuarioPerfilSerializer
+    AfinidadSerializer, UsuarioPerfilSerializer, AlumnoPerfilEvolucionSerializer
 )
-
+from .utils_stats import validate_stats, get_pool_for_level, get_level_ranges, get_stats_list
 
 # ================= REGISTRO Y PERFIL ===================
 @api_view(["POST"])
@@ -42,8 +42,12 @@ def registro_usuario(request):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def perfil_usuario(request):
-    data = {"rol": request.user.rol}
+    data = {"rol": request.user.rol,
+            "onboarding_completado": request.user.onboarding_completado # <-- explícito
+            }
+    
     if request.user.rol == "alumno":
+        
         try:
             perfil = AlumnoPerfil.objects.get(usuario=request.user)
             data.update(AlumnoPerfilSerializer(perfil).data)
@@ -375,3 +379,87 @@ def importar_participantes_excel(request, pozo_id):
     ParticipantePozo.objects.bulk_create([ParticipantePozo(**d) for d in nuevos])
     serializer = ParticipantePozoSerializer(ParticipantePozo.objects.filter(pozo=pozo), many=True)
     return Response(serializer.data, status=201)
+
+
+
+# views.py (ejemplo simple)
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def historial_evolucion_stats(request):
+    perfil = AlumnoPerfil.objects.get(usuario=request.user)
+    evoluciones = perfil.evoluciones.order_by("-fecha")
+    serializer = AlumnoPerfilEvolucionSerializer(evoluciones, many=True)
+    return Response(serializer.data)
+
+
+
+# views.py (añade después de historial_evolucion_stats)
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def guardar_evolucion_stats(request):
+    """
+    Guarda una nueva evolución del perfil del alumno autenticado.
+    Puede usarse tras modificar perfil, entrenamiento, o cuando quieras.
+    Devuelve la evolución recién guardada.
+    """
+    try:
+        perfil = AlumnoPerfil.objects.get(usuario=request.user)
+    except AlumnoPerfil.DoesNotExist:
+        return Response({"error": "Perfil de alumno no encontrado"}, status=404)
+
+    # Si quieres que se pueda pasar un dict 'stats' personalizado en el body, úsalo si está:
+    stats = request.data.get("stats")
+    if not stats:
+        # Si no se pasa, guarda snapshot actual
+        stats = perfil.to_stats_dict()
+
+    # Guarda evolución
+    evolucion = AlumnoPerfilEvolucion.objects.create(perfil=perfil, stats=stats)
+    serializer = AlumnoPerfilEvolucionSerializer(evolucion)
+    return Response(serializer.data, status=201)
+
+
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def onboarding_perfil_alumno(request):
+    nivel = float(request.data.get("nivel", 0))
+    stats = {stat: int(request.data.get(stat, 0)) for stat in get_stats_list()}
+
+    # 1. Validar pool/consistencia
+    alertas = validate_stats(nivel, stats)
+    if alertas:
+        return Response({"alertas": alertas}, status=400)
+    
+    # 2. Crear o actualizar perfil de alumno
+    perfil, creado = AlumnoPerfil.objects.get_or_create(usuario=request.user)
+    for stat, valor in stats.items():
+        setattr(perfil, stat, valor)
+    perfil.nivel = nivel
+    perfil.save()
+
+    # 3. (Opcional) Guardar snapshot evolución
+    AlumnoPerfilEvolucion.objects.create(perfil=perfil, stats=stats)
+
+    # 4. Responder resumen para frontend
+    serializer = AlumnoPerfilSerializer(perfil)
+    return Response({
+        "mensaje": "Perfil creado/actualizado correctamente",
+        "perfil": serializer.data,
+        "pool_usado": sum(stats.values()),
+        "pool_max": get_pool_for_level(nivel)
+    }, status=201)
+
+
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def completar_onboarding(request):
+    usuario = request.user
+    usuario.onboarding_completado = True
+    usuario.save()
+    return Response({"onboarding_completado": True})

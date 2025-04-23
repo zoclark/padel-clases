@@ -9,7 +9,10 @@ from .views import (
     crear_pozo, listar_pozos, participantes_pozo, agregar_participante, afinidades_usuario, crear_afinidad
 )
 from .views import actualizar_participante, eliminar_participante, detalle_pozo, importar_participantes_excel
-
+from .views import historial_evolucion_stats
+from .views import guardar_evolucion_stats
+from .views import onboarding_perfil_alumno
+from .views import completar_onboarding
 
 urlpatterns = [
     # Auth / Perfil
@@ -17,6 +20,7 @@ urlpatterns = [
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("registro/", registro_usuario),
     path("perfil/", perfil_usuario),
+    path('completar_onboarding/', completar_onboarding, name='completar_onboarding'),
 
 
 
@@ -24,7 +28,9 @@ urlpatterns = [
     path("historial/", historial_entrenamientos),
     path("recursos-alumno/", recursos_alumno),
     path("reservas/", obtener_reservas),
-
+    path("perfil/evolucion/", historial_evolucion_stats),  # GET HISTORIAL
+    path("perfil/evolucion/guardar/", guardar_evolucion_stats),
+    path("onboarding-perfil/", onboarding_perfil_alumno, name="onboarding-perfil"),  # POST NUEVO
 
     # Pozos & Participantes
     path("pozos/", listar_pozos),

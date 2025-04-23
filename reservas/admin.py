@@ -45,26 +45,79 @@ class UsuarioAdmin(UserAdmin):
 
     fieldsets = UserAdmin.fieldsets + (
         ("Rol y Género", {"fields": ("rol", "genero")}),
-        ("Datos personales", {"fields": ("fecha_nacimiento", "telefono", "localidad", "municipio")}),
+        ("Datos personales", {"fields": ("fecha_nacimiento", "telefono", "localidad", "municipio","onboarding_completado")}),
     )
 
     list_display = ("username", "email", "rol", "genero", "telefono", "localidad", "municipio", "is_staff")
     list_filter = ("rol", "genero", "localidad", "municipio", "is_staff")
-    search_fields = ("username", "email", "telefono", "localidad", "municipio")
+    search_fields = ("username", "email", "telefono", "localidad", "municipio","onboarding_completado")
 
 # --- Perfil de Alumno ---
 @admin.register(AlumnoPerfil)
 class AlumnoPerfilAdmin(admin.ModelAdmin):
     fieldsets = (
         ("Usuario", {"fields": ("usuario",)}),
-        ("Nivel General", {"fields": ("nivel",)}),
-        ("Físico", {"fields": ("resistencia", "agilidad", "coordinacion", "tecnica", "velocidad", "potencia")}),
-        ("Técnica de Golpeo", {"fields": ("globo", "volea_natural", "volea_reves", "bandeja", "vibora", "remate", "rulo", "bote_pronto", "chiquita", "dejada")}),
-        ("Posicionamiento/Áreas", {"fields": ("ataque", "defensa", "pared", "pared_lateral", "pared_fondo", "fondo_pared")}),
-        ("Skills", {"fields": ("cambio_agarre", "liftado", "cortado", "x3", "x4", "contrapared", "contralateral")}),
-        ("Características", {"fields": ("caracteristicas",)}),
+        ("Nivel General", {"fields": ("nivel", "mano_dominante", "posicion")}),
+        
+        # BLOQUE FÍSICO
+        ("Físico", {
+            "fields": (
+                "resistencia", "agilidad", "coordinacion", 
+                "tecnica", "velocidad", "potencia"
+            )
+        }),
+
+        # BLOQUE TÉCNICA DE GOLPEO
+        ("Técnica de Golpeo", {
+            "fields": (
+                "globo", "volea_natural", "volea_reves", "bandeja", "vibora",
+                "remate", "rulo", "liftado", "cortado", "cambio_agarre",
+                "bote_pronto", "dejada", "chiquita"
+            )
+        }),
+
+        # BLOQUE REMATES Y GOLPES AVANZADOS
+        ("Golpes Avanzados", {
+            "fields": (
+                "x3", "x4", "contrapared", "contralateral"
+            )
+        }),
+
+        # BLOQUE POSICIONAMIENTO Y ÁREAS
+        ("Posicionamiento/Áreas", {
+            "fields": (
+                "ataque", "defensa", "pared", "pared_lateral", 
+                "pared_fondo", "fondo_pared"
+            )
+        }),
+
+        # BLOQUE TÁCTICA
+        ("Táctica", {
+            "fields": (
+                "tactica", "anticipacion", "vision_juego", "decisiones"
+            )
+        }),
+
+        # BLOQUE PSICOLÓGICO / ACTITUD
+        ("Psicológico / Actitud", {
+            "fields": (
+                "concentracion", "serenidad", "trabajo_equipo", "esfuerzo",
+                "regularidad", "competitividad", "gestion_error", "comunicacion"
+            )
+        }),
+
+        # BLOQUE CARACTERÍSTICAS
+        ("Características Extra", {"fields": ("caracteristicas",)}),
     )
+
     filter_horizontal = ("caracteristicas",)
+    list_display = (
+        "usuario", "nivel", "mano_dominante", "posicion", 
+        "resistencia", "agilidad", "coordinacion", "tecnica", "velocidad", "potencia",
+        "tactica", "concentracion", "trabajo_equipo"
+    )
+    search_fields = ("usuario__username",)
+    list_filter = ("nivel", "mano_dominante", "posicion")
 
 # --- Sesiones de Entrenamiento ---
 @admin.register(TrainingSession)
