@@ -169,6 +169,8 @@ CORS_ALLOWED_ORIGINS = [
     'https://metrikpadel.com',
     "http://127.0.0.1:5173",
     "http://localhost:5173",
+    "https://e5z_hx0-anonymous-8081.exp.direct",
+    "http://localhost:8081",
 ]
 
 

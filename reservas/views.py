@@ -1,4 +1,5 @@
-# views.py
+# reservas/views.py
+
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes, parser_classes
 from rest_framework.response import Response
@@ -18,6 +19,10 @@ from .serializers import (
     AfinidadSerializer, UsuarioPerfilSerializer, AlumnoPerfilEvolucionSerializer
 )
 from .utils_stats import validate_stats, get_pool_for_level, get_level_ranges, get_stats_list
+
+# --- Import del módulo de emparejamientos ---
+from .pairings import generar_emparejamientos
+
 
 # ================= REGISTRO Y PERFIL ===================
 @api_view(["POST"])
@@ -42,12 +47,11 @@ def registro_usuario(request):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def perfil_usuario(request):
-    data = {"rol": request.user.rol,
-            "onboarding_completado": request.user.onboarding_completado # <-- explícito
-            }
-    
+    data = {
+        "rol": request.user.rol,
+        "onboarding_completado": request.user.onboarding_completado
+    }
     if request.user.rol == "alumno":
-        
         try:
             perfil = AlumnoPerfil.objects.get(usuario=request.user)
             data.update(AlumnoPerfilSerializer(perfil).data)
@@ -142,6 +146,47 @@ def participantes_pozo(request, pozo_id):
     participantes = ParticipantePozo.objects.filter(pozo_id=pozo_id)
     serializer = ParticipantePozoSerializer(participantes, many=True)
     return Response(serializer.data)
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def emparejamiento_pozo(request, pozo_id):
+    """
+    POST: genera emparejamientos para el pozo
+    """
+    try:
+        pozo = Pozo.objects.get(id=pozo_id)
+    except Pozo.DoesNotExist:
+        return Response({"error":"Pozo no encontrado"}, status=404)
+
+    qs = ParticipantePozo.objects.filter(pozo=pozo).prefetch_related(
+        'juega_con','juega_contra','no_juega_con','no_juega_contra'
+    )
+    jugadores = []
+    for p in qs:
+        jugadores.append({
+            "id": p.id,
+            "nombre": p.nombre,
+            "nivel": float(p.nivel),
+            "genero": p.genero,
+            "mano_dominante": p.mano_dominante,
+            "posicion": p.posicion,
+            "pista_fija": p.pista_fija,
+            "juega_con":    [c.id for c in p.juega_con.all()],
+            "juega_contra": [c.id for c in p.juega_contra.all()],
+            "no_juega_con":    [c.id for c in p.no_juega_con.all()],
+            "no_juega_contra": [c.id for c in p.no_juega_contra.all()],
+        })
+
+     # Llamar a la función y obtener el diccionario completo
+    resultado_emparejamiento = generar_emparejamientos(
+        jugadores,
+        pozo.num_pistas,
+        pozo.tipo
+    )
+
+    # Devolver el diccionario completo como respuesta JSON
+    return Response(resultado_emparejamiento, status=status.HTTP_200_OK)
+    # --- FIN CAMBIO CLAVE ---
 
 
 @api_view(["POST"])
@@ -255,13 +300,6 @@ def actualizar_participante(request, participante_id):
         except:
             data["pista_fija"] = None
 
-    # ----------- Eliminamos este bloque -----------
-    # for rel in ("juega_con","juega_contra","no_juega_con","no_juega_contra"):
-    #     if rel in data:
-    #         try: data[rel] = int(data[rel])
-    #         except: data.pop(rel,None)
-    # -----------------------------------------------
-
     serializer = ParticipantePozoSerializer(participante, data=data, partial=True)
     if serializer.is_valid():
         participante = serializer.save()
@@ -311,7 +349,6 @@ def detalle_pozo(request, pozo_id):
     return Response(serializer.errors, status=400)
 
 
-# ================= IMPORTACIÓN EXCEL ==================
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 @parser_classes([MultiPartParser])
@@ -381,8 +418,7 @@ def importar_participantes_excel(request, pozo_id):
     return Response(serializer.data, status=201)
 
 
-
-# views.py (ejemplo simple)
+# ================= PERFIL / EVOLUCIÓN ====================
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def historial_evolucion_stats(request):
@@ -392,33 +428,21 @@ def historial_evolucion_stats(request):
     return Response(serializer.data)
 
 
-
-# views.py (añade después de historial_evolucion_stats)
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def guardar_evolucion_stats(request):
-    """
-    Guarda una nueva evolución del perfil del alumno autenticado.
-    Puede usarse tras modificar perfil, entrenamiento, o cuando quieras.
-    Devuelve la evolución recién guardada.
-    """
     try:
         perfil = AlumnoPerfil.objects.get(usuario=request.user)
     except AlumnoPerfil.DoesNotExist:
         return Response({"error": "Perfil de alumno no encontrado"}, status=404)
 
-    # Si quieres que se pueda pasar un dict 'stats' personalizado en el body, úsalo si está:
     stats = request.data.get("stats")
     if not stats:
-        # Si no se pasa, guarda snapshot actual
         stats = perfil.to_stats_dict()
 
-    # Guarda evolución
     evolucion = AlumnoPerfilEvolucion.objects.create(perfil=perfil, stats=stats)
     serializer = AlumnoPerfilEvolucionSerializer(evolucion)
     return Response(serializer.data, status=201)
-
-
 
 
 @api_view(["POST"])
@@ -427,22 +451,18 @@ def onboarding_perfil_alumno(request):
     nivel = float(request.data.get("nivel", 0))
     stats = {stat: int(request.data.get(stat, 0)) for stat in get_stats_list()}
 
-    # 1. Validar pool/consistencia
     alertas = validate_stats(nivel, stats)
     if alertas:
         return Response({"alertas": alertas}, status=400)
-    
-    # 2. Crear o actualizar perfil de alumno
+
     perfil, creado = AlumnoPerfil.objects.get_or_create(usuario=request.user)
     for stat, valor in stats.items():
         setattr(perfil, stat, valor)
     perfil.nivel = nivel
     perfil.save()
 
-    # 3. (Opcional) Guardar snapshot evolución
     AlumnoPerfilEvolucion.objects.create(perfil=perfil, stats=stats)
 
-    # 4. Responder resumen para frontend
     serializer = AlumnoPerfilSerializer(perfil)
     return Response({
         "mensaje": "Perfil creado/actualizado correctamente",
@@ -451,10 +471,6 @@ def onboarding_perfil_alumno(request):
         "pool_max": get_pool_for_level(nivel)
     }, status=201)
 
-
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
