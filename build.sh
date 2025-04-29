@@ -11,6 +11,10 @@ if [ "${RENDER,,}" = "true" ]; then
     echo "Eliminando .env locales en padel-web..."
     rm -f padel-web/.env*
 
+    # 🔥 Limpiar staticfiles antiguos
+    echo "Limpiando staticfiles antiguos..."
+    rm -rf backend/staticfiles/*
+
     # 1. Dependencias Python
     pip install -r requirements.txt
 
