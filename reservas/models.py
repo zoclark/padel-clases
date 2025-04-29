@@ -325,3 +325,11 @@ class AlumnoPerfilEvolucion(models.Model):
 
     class Meta:
         ordering = ['-fecha']
+
+
+class PushToken(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    token = models.CharField(max_length=200)
+
+    def __str__(self):
+        return f"{self.user.username} - Token"

@@ -131,13 +131,21 @@ def listar_pozos(request):
     serializer = PozoSerializer(pozos, many=True)
     return Response(serializer.data)
 
+# --- Tu vista actualizada ---
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def crear_pozo(request):
     serializer = PozoSerializer(data=request.data)
     if serializer.is_valid():
-        serializer.save(creado_por=request.user)
+        pozo = serializer.save(creado_por=request.user)
+
+        # 👉 Enviar notificación a todos los usuarios
+        titulo = "¡Nuevo pozo disponible!"
+        cuerpo = f"{pozo.titulo} a las {pozo.hora_inicio.strftime('%H:%M')}"
+        enviar_notificacion_push(titulo, cuerpo)
+
         return Response(serializer.data, status=201)
+
     return Response(serializer.errors, status=400)
 
 @api_view(["GET"])
@@ -479,3 +487,38 @@ def completar_onboarding(request):
     usuario.onboarding_completado = True
     usuario.save()
     return Response({"onboarding_completado": True})
+
+
+
+from .models import PushToken
+import requests
+
+EXPO_URL = "https://exp.host/--/api/v2/push/send"
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def guardar_push_token(request):
+    token = request.data.get("token")
+    if not token:
+        return Response({"error": "Token requerido"}, status=400)
+    PushToken.objects.update_or_create(user=request.user, defaults={"token": token})
+    return Response({"mensaje": "Token guardado correctamente"})
+
+
+def enviar_notificacion_push(titulo, cuerpo):
+    tokens = PushToken.objects.values_list("token", flat=True)
+    mensajes = [
+        {
+            "to": token,
+            "sound": "default",
+            "title": titulo,
+            "body": cuerpo,
+        }
+        for token in tokens
+    ]
+    headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+    }
+    for mensaje in mensajes:
+        requests.post(EXPO_URL, json=mensaje, headers=headers)

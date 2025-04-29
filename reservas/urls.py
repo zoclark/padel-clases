@@ -13,19 +13,21 @@ from reservas.views import (
     afinidades_usuario, crear_afinidad,
     importar_participantes_excel,
     historial_evolucion_stats, guardar_evolucion_stats,
-    onboarding_perfil_alumno, completar_onboarding,
+    onboarding_perfil_alumno, completar_onboarding, guardar_push_token,
     FrontendAppView
 )
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 urlpatterns = [
     # Auth / Perfil
+    
     path("token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("registro/", registro_usuario),
     path("perfil/", perfil_usuario),
     path("completar_onboarding/", completar_onboarding, name="completar_onboarding"),
-
+    path("push-token/", guardar_push_token),
+    
     # Entrenamientos / Recursos / Reservas
     path("historial/", historial_entrenamientos),
     path("recursos-alumno/", recursos_alumno),
