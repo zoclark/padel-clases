@@ -1,11 +1,22 @@
-<!-- templates/email/verificacion.html -->
 <html>
   <body>
     <p>Hola {{ user.username }},</p>
-    <p>Gracias por registrarte en Metrik Padel. Por favor verifica tu correo haciendo clic en el siguiente enlace:</p>
+    <p>Gracias por registrarte en Metrik Padel. Para activar tu cuenta:</p>
+    
     <p>
-      <a href="{{ activation_link }}">Verificar mi cuenta</a>
+      📱 <strong>Si estás en el móvil:</strong><br>
+      <a href="metrikpadel://activar-cuenta/{{ uid }}/{{ token }}" style="color: #007BFF;">
+        Abrir en la App
+      </a>
     </p>
+
+    <p>
+      💻 <strong>Si estás en el navegador:</strong><br>
+      <a href="https://www.metrikpadel.com/activar-cuenta/{{ uid }}/{{ token }}" style="color: #007BFF;">
+        Verificar desde la Web
+      </a>
+    </p>
+
     <p>Si tú no solicitaste esta cuenta, puedes ignorar este correo.</p>
     <p>¡Nos vemos en la pista! 🎾</p>
   </body>

@@ -15,7 +15,8 @@ def send_verification_email(user, origen="web"):
     else:
         base_url = "https://www.metrikpadel.com/activar-cuenta"
 
-    activation_link = f"{base_url}/{uid}/{token}"
+    # Añadimos /index.jsx para compatibilidad con expo-router
+    activation_link = f"{base_url}/{uid}/{token}/index.jsx"
 
     subject = "Activa tu cuenta en Metrik Padel"
     message = (

@@ -42,9 +42,13 @@ def registro_usuario(request):
             rol="alumno",
             is_active=False  # Aún no está verificado
         )
-        send_verification_email(usuario)
+        origen = datos.get("origen", "web")
+        send_verification_email(usuario, origen)
         print("✅ Usuario creado desde API:", usuario.username)
-        return Response({"mensaje": f"Usuario '{usuario.username}' creado correctamente"}, status=201)
+        return Response({
+            "mensaje": f"Usuario '{usuario.username}' creado correctamente",
+            "email": usuario.email
+        }, status=201)
     except Exception as e:
         print("❌ Error en el registro:", e)
         return Response({"error": str(e)}, status=500)
