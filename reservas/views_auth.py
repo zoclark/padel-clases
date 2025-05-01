@@ -39,6 +39,9 @@ class RegistroConVerificacionView(APIView):
     "uid": urlsafe_base64_encode(force_bytes(usuario.pk)),
     "token": default_token_generator.make_token(usuario)
 }, status=201)
+
+
+
 class ActivarCuentaView(APIView):
     def get(self, request, uidb64, token):
         try:
@@ -46,6 +49,9 @@ class ActivarCuentaView(APIView):
             usuario = Usuario.objects.get(pk=uid)
         except (TypeError, ValueError, OverflowError, Usuario.DoesNotExist):
             return Response({"detail": "Enlace inválido."}, status=400)
+
+        if usuario.is_active:
+            return Response({"detail": "Esta cuenta ya está activada."})
 
         if default_token_generator.check_token(usuario, token):
             usuario.is_active = True
