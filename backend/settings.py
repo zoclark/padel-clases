@@ -43,9 +43,9 @@ USE_STATIC_FRONTEND = ENVIRONMENT == "production"
 
 # === CONFIGURACIÓN GENERAL ===
 SECRET_KEY = os.getenv("SECRET_KEY", "clave-insegura-por-defecto")
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "*").split(",")
+ALLOWED_HOSTS = [host.strip() for host in os.getenv("ALLOWED_HOSTS", "*").split(",")]
 
-
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # === EMAIL CONFIGURATION ===
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
