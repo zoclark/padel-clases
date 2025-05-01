@@ -47,6 +47,14 @@ ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "*").split(",")
 
 
 
+# === EMAIL CONFIGURATION ===
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.serviciodecorreo.es'
+EMAIL_PORT = 465
+EMAIL_USE_SSL = True
+EMAIL_HOST_USER = 'info@metrikpadel.com'
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
+DEFAULT_FROM_EMAIL = 'Metrik Padel <info@metrikpadel.com>'
 
 # === APLICACIONES ===
 INSTALLED_APPS = [

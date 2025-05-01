@@ -8,7 +8,7 @@ import {
   FaPlusCircle,
   FaMinusCircle,
 } from "react-icons/fa";
-
+import { useAuth } from "@/contexts/AuthContext"; // al principio
 import * as XLSX from "xlsx"; // <-- NUEVO: para Excel
 
 // --- Validaciones helpers (CENTRALIZADAS) ---
@@ -175,6 +175,7 @@ export default function PozoParticipantes({
   pozoId,
   onParticipantesActualizados,
 }) {
+  const { user } = useAuth(); // ✅ ESTO FALTABA
   const [participantes, setParticipantes] = useState([]);
   const [numPistas, setNumPistas] = useState(8);
   const [tipoPozo, setTipoPozo] = useState("");
@@ -680,6 +681,7 @@ const autoSyncPistaFija = async (edicion, participantes) => {
         <div className="text-blue-300 mb-4 text-sm">
           Faltan {maxParticipantes - participantes.length} participantes.
         </div>
+      
       )}
 
 
@@ -700,6 +702,35 @@ const autoSyncPistaFija = async (edicion, participantes) => {
           }}
         >Eliminar seleccionados</button>
       )}
+
+{user?.rol === "organizador" &&
+ !participantes.some(p => p.usuario === user.id) && (
+  <button
+    onClick={async () => {
+      const payload = {
+        pozo: pozoId,
+        nombre: user.username,
+        nivel: 3,
+        genero: user.genero || "hombre",
+        posicion: "ambos",
+        mano_dominante: "diestro",
+        usuario: user.id,
+      };
+      try {
+        await api.post("/pozos/participantes/agregar/", payload);
+        toast.success("✅ Te has inscrito como jugador");
+        await refreshLista();
+      } catch (err) {
+        toast.error(err.response?.data?.error || "❌ Error al inscribirte");
+      }
+    }}
+    className="mb-4 px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded"
+  >
+    Inscribirme yo como jugador
+  </button>
+)}
+
+
 
       {/* Tarjetas participantes */}
       <div className="grid grid-cols-[repeat(auto-fit,minmax(160px,1fr))] gap-4 mb-6 w-full">

@@ -27,6 +27,8 @@ services:
         value: https://www.metrikpadel.com/api/
       - key: VITE_ENV
         value: production
+      - key: EMAIL_HOST_PASSWORD
+        value: "uHke746i&u(Bfgx" 
 
 databases:
   - name: padel-db

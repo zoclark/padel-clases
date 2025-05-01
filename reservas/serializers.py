@@ -1,5 +1,9 @@
 # reservas/serializers.py
+
 from rest_framework import serializers
+from rest_framework.validators import UniqueValidator
+from django.db import IntegrityError
+
 from .models import (
     AlumnoPerfil,
     Caracteristica,
@@ -13,6 +17,43 @@ from .models import (
     AlumnoPerfilEvolucion,
 )
 import re
+
+# --- Registro de usuario con unicidad de username/email ---
+class RegistroSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(
+        validators=[
+            UniqueValidator(
+                queryset=Usuario.objects.all(),
+                message="Este nombre de usuario ya existe."
+            )
+        ]
+    )
+    email = serializers.EmailField(
+        validators=[
+            UniqueValidator(
+                queryset=Usuario.objects.all(),
+                message="Este email ya está en uso."
+            )
+        ]
+    )
+    password = serializers.CharField(write_only=True)
+
+    class Meta:
+        model = Usuario
+        fields = ("username", "email", "password")
+
+    def create(self, validated_data):
+        try:
+            # create_user se encarga de hashear la contraseña
+            user = Usuario.objects.create_user(**validated_data)
+            return user
+        except IntegrityError as e:
+            err = str(e).lower()
+            if 'email' in err:
+                raise serializers.ValidationError({'email': 'Este email ya está en uso.'})
+            if 'username' in err:
+                raise serializers.ValidationError({'username': 'Este nombre de usuario ya existe.'})
+            raise
 
 # --- Característica (tags del alumno) ---
 class CaracteristicaSerializer(serializers.ModelSerializer):
@@ -30,7 +71,8 @@ class AlumnoPerfilSerializer(serializers.ModelSerializer):
     localidad = serializers.CharField(source="usuario.localidad", read_only=True)
     municipio = serializers.CharField(source="usuario.municipio", read_only=True)
     email = serializers.EmailField(source="usuario.email", read_only=True)
-    onboarding_completado = serializers.BooleanField(source="usuario.onboarding_completado", read_only=True)  # <--- AÑADE ESTO
+    onboarding_completado = serializers.BooleanField(source="usuario.onboarding_completado", read_only=True)
+
     class Meta:
         model = AlumnoPerfil
         fields = "__all__"
@@ -57,12 +99,6 @@ class RecursoAlumnoSerializer(serializers.ModelSerializer):
             if video_id:
                 thumbnail_url = f"https://img.youtube.com/vi/{video_id}/maxresdefault.jpg"
                 representation["thumbnail"] = thumbnail_url
-                print(f"Generando thumbnail para el recurso: {representation['titulo']}, thumbnail: {thumbnail_url}")
-            else:
-                print(f"No se pudo extraer el ID de YouTube para la URL: {instance.url}")
-        else:
-            print(f"Thumbnail existente: {representation['thumbnail']}")
-
         return representation
 
     def extract_video_id(self, url):
@@ -139,12 +175,11 @@ class UsuarioPerfilSerializer(serializers.ModelSerializer):
             "telefono",
             "localidad",
             "municipio",
-            "onboarding_completado",   # <-- Añade aquí
+            "onboarding_completado",
         ]
         read_only_fields = ["username", "email"]
 
-
-# serializers.py
+# --- Evolución de perfil de alumno ---
 class AlumnoPerfilEvolucionSerializer(serializers.ModelSerializer):
     class Meta:
         model = AlumnoPerfilEvolucion

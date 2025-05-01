@@ -127,9 +127,32 @@ class FrontendAppView(View):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def listar_pozos(request):
-    pozos = Pozo.objects.all()
-    serializer = PozoSerializer(pozos, many=True)
-    return Response(serializer.data)
+    pozos = Pozo.objects.prefetch_related("participantes").all().order_by("fecha", "hora_inicio")
+
+    data = []
+    for pozo in pozos:
+        participantes = [
+            {
+                "id": p.id,
+                "usuario_id": p.usuario.id if p.usuario else None,
+                "nombre": p.nombre,
+                "es_organizador": p.es_organizador,    # <<< aquí
+            }
+            for p in pozo.participantes.all()
+        ]
+
+        data.append({
+            "id": pozo.id,
+            "titulo": pozo.titulo,
+            "fecha": pozo.fecha,
+            "hora_inicio": pozo.hora_inicio.strftime("%H:%M"),
+            "hora_fin": pozo.hora_fin.strftime("%H:%M"),
+            "tipo": pozo.tipo,
+            "num_pistas": pozo.num_pistas,
+            "participantes": participantes,
+        })
+
+    return Response(data)
 
 # --- Tu vista actualizada ---
 @api_view(["POST"])
@@ -202,44 +225,59 @@ def emparejamiento_pozo(request, pozo_id):
 def agregar_participante(request):
     data = request.data.copy()
 
-    # género si viene de usuario autenticado
     if request.user.is_authenticated:
-        data["usuario"] = request.user.id
+        if request.user.rol == "alumno":
+            data["usuario"] = request.user.id
+        else:
+            usuario_payload = data.get("usuario")
+            if usuario_payload and str(usuario_payload) == str(request.user.id):
+                data["usuario"] = request.user.id
+            else:
+                data["usuario"] = None
 
-    # normalizaciones básicas
-    for campo in ("nombre","genero","mano_dominante"):
+    # normalizaciones
+    for campo in ("nombre", "genero", "mano_dominante"):
         if campo in data and isinstance(data[campo], str):
             data[campo] = data[campo].strip().lower()
     if "nivel" in data:
-        try: data["nivel"] = int(float(data["nivel"]))
-        except: pass
+        try:
+            data["nivel"] = int(float(data["nivel"]))
+        except:
+            pass
 
     if "posicion" in data:
         clave = data["posicion"].strip().lower()
-    mapping = {
-        "reves":  "reves",
-        "drive":  "drive",
-        "ambos":  "ambos",
-    }
-    data["posicion"] = mapping.get(clave, "ambos")
+        mapping = {"reves": "reves", "drive": "drive", "ambos": "ambos"}
+        data["posicion"] = mapping.get(clave, "ambos")
 
     if "pista_fija" in data:
         try:
             pf = int(data["pista_fija"])
-            data["pista_fija"] = pf if pf>0 else None
-        except: data["pista_fija"] = None
+            data["pista_fija"] = pf if pf > 0 else None
+        except:
+            data["pista_fija"] = None
 
-    # nuevos campos de afinidades/parejas
-    for rel in ("juega_con","juega_contra","no_juega_con","no_juega_contra"):
+    for rel in ("juega_con", "juega_contra", "no_juega_con", "no_juega_contra"):
         if rel in data:
-            try: data[rel] = int(data[rel])
-            except: data.pop(rel,None)
+            try:
+                data[rel] = int(data[rel])
+            except:
+                data.pop(rel, None)
+
+    if data.get("usuario"):
+        ya_existe = ParticipantePozo.objects.filter(pozo=data["pozo"], usuario=data["usuario"]).exists()
+        if ya_existe:
+            return Response({"error": "Ya estás inscrito en este pozo."}, status=400)
+
+    # Detectar si el usuario es organizador y se está apuntando a sí mismo
+    es_organizador = False
+    if data.get("usuario") and str(data["usuario"]) == str(request.user.id) and request.user.rol == "organizador":
+        es_organizador = True
 
     serializer = ParticipantePozoSerializer(data=data)
     if serializer.is_valid():
-        participante = serializer.save()
+        participante = serializer.save(es_organizador=es_organizador)
 
-        # asignar relaciones M2M
         if data.get("juega_con"):
             participante.juega_con.set(data["juega_con"])
         if data.get("juega_contra"):
@@ -249,7 +287,6 @@ def agregar_participante(request):
         if data.get("no_juega_contra"):
             participante.no_juega_contra.set(data["no_juega_contra"])
 
-        # crear JugadorPozo
         JugadorPozo.objects.create(
             pozo=participante.pozo,
             nombre=participante.nombre,
@@ -333,10 +370,14 @@ def eliminar_participante(request, participante_id):
     try:
         participante = ParticipantePozo.objects.get(id=participante_id)
     except ParticipantePozo.DoesNotExist:
-        return Response({"error":"Participante no encontrado"},status=404)
-    participante.delete()
-    return Response({"mensaje":"Participante eliminado"}, status=204)
+        return Response({"error": "Participante no encontrado"}, status=404)
 
+    # Protección contra borrado del organizador apuntado a sí mismo
+    if participante.es_organizador:
+        return Response({"error": "No se puede eliminar al organizador inscrito."}, status=403)
+
+    participante.delete()
+    return Response({"mensaje": "Participante eliminado"}, status=204)
 
 @api_view(["GET","PUT","PATCH"])
 @permission_classes([IsAuthenticated])

@@ -2,9 +2,11 @@ import { createContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "@/api/axiosConfig";
 import { toast } from "react-toastify";
+import { useContext } from "react";
 
+
+export const useAuth = () => useContext(AuthContext);
 export const AuthContext = createContext();
-
 export function AuthProvider({ children }) {
   const navigate = useNavigate();
 
@@ -113,3 +115,5 @@ export function AuthProvider({ children }) {
     </AuthContext.Provider>
   );
 }
+
+

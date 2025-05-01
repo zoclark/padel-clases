@@ -36,6 +36,7 @@ export default function PozosJugables() {
       genero: user.genero,
       posicion: "Ambos",
       mano_dominante: user.mano_dominante || "diestro",
+      usuario: user.id, // asegúrate de que se manda
     };
 
     const cap = pozo.num_pistas * 4;
@@ -64,7 +65,12 @@ export default function PozosJugables() {
     try {
       const participante = pozo.participantes.find((p) => p.nombre === user.username);
       if (!participante) return;
-
+  
+      // Comprobamos si el participante es el organizador
+      if (participante.es_organizador) {
+        return toast.error("El organizador no puede darse de baja.");
+      }
+  
       await api.delete(`/pozos/participantes/${participante.id}/eliminar/`);
       toast.success("Te has dado de baja ❌");
       refreshPozo(pozo.id);
