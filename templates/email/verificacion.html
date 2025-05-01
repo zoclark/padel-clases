@@ -1,11 +1,10 @@
-<!DOCTYPE html>
 <html>
-<head><meta charset="utf-8"></head>
-<body>
-  <p>Hola {{ user.username }},</p>
-  <p>Gracias por registrarte en Metrik Padel.</p>
-  <p>Haz clic en el siguiente enlace para activar tu cuenta:</p>
-  <p><a href="{{ activation_url }}">Activar cuenta</a></p>
-  <p>Este enlace expirará pronto.</p>
-</body>
+  <body>
+    <p>Hola {{ user.username }},</p>
+    <p>Gracias por registrarte en Metrik Padel. Por favor verifica tu correo haciendo clic en el siguiente enlace:</p>
+    <p>
+      <a href="{{ domain }}/activar/{{ uid }}/{{ token }}/">Verificar mi cuenta</a>
+    </p>
+    <p>Si tú no solicitaste esta cuenta, puedes ignorar este correo.</p>
+  </body>
 </html>

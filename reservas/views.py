@@ -585,21 +585,3 @@ def resend_verification_email(request):
     except Usuario.DoesNotExist:
         return Response({"detail": "Usuario no encontrado."}, status=404)
     
-@api_view(["GET"])
-def activar_cuenta(request, uidb64, token):
-    try:
-        uid = force_str(urlsafe_base64_decode(uidb64))
-        user = Usuario.objects.get(pk=uid)
-    except (TypeError, ValueError, OverflowError, Usuario.DoesNotExist):
-        user = None
-
-    if user is not None and default_token_generator.check_token(user, token):
-        if user.is_active:
-            return Response({"detail": "La cuenta ya está activada."})
-        user.is_active = True
-        user.save()
-        return Response({"detail": "Cuenta activada correctamente."})
-    else:
-        return Response({"detail": "Enlace inválido o expirado."}, status=400)
-    
-
