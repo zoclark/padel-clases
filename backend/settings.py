@@ -108,7 +108,7 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],  # << AÑADIDO
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -120,7 +120,6 @@ TEMPLATES = [
         },
     },
 ]
-
 # === BASE DE DATOS ===
 if ENVIRONMENT == "production" and os.getenv("DATABASE_URL"):
     DATABASES = {
