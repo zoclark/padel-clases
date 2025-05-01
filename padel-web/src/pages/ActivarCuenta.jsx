@@ -1,7 +1,7 @@
 // src/pages/ActivarCuenta.jsx
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import api from "@/services/api";
+import api from "@/api/axiosConfig"; // 👈 CAMBIO AQUÍ
 import toast from "react-hot-toast";
 
 export default function ActivarCuenta() {

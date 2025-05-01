@@ -26,11 +26,17 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    const isLoginRoute = originalRequest.url.endsWith("/token/");
+    const isLoginRoute = originalRequest.url?.includes("/token/");
     if (error.response?.status === 401 && !originalRequest._retry && !isLoginRoute) {
       originalRequest._retry = true;
+
+      // 🔒 Protección adicional si no hay refreshToken
+      const refreshToken = localStorage.getItem("refreshToken");
+      if (!refreshToken) {
+        return Promise.reject(error);  // o puedes hacer logout aquí si prefieres
+      }
+
       try {
-        const refreshToken = localStorage.getItem("refreshToken");
         const res = await axios.post(
           `${import.meta.env.VITE_API_BASE_URL}token/refresh/`,
           { refresh: refreshToken }
@@ -41,7 +47,6 @@ api.interceptors.response.use(
         originalRequest.headers.Authorization = `Bearer ${newAccess}`;
         return api(originalRequest);
       } catch (refreshError) {
-        // Solo mostrar un toast una vez
         if (!sessionExpiredToastShown) {
           toast.error("Tu sesión ha caducado. Inicia sesión de nuevo.", {
             position: "top-center",
@@ -53,7 +58,6 @@ api.interceptors.response.use(
           }, 8000);
         }
 
-        // No redirigir directamente
         return Promise.reject(refreshError);
       }
     }
