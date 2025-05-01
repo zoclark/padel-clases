@@ -4,9 +4,10 @@
     <p>Hola {{ user.username }},</p>
     <p>Gracias por registrarte en Metrik Padel. Para activar tu cuenta:</p>
     <p>
-      📱 Si estás en el móvil:<br>
-      <a href="metrikpadel://activar-cuenta/{{ uid }}/{{ token }}">Abrir en la App</a>
-    </p>
+        📱 Si estás en el móvil:<br>
+        Abre manualmente este enlace desde tu dispositivo:<br>
+        <code>metrikpadel://activar-cuenta/{{ uid }}/{{ token }}</code>
+      </p>
     <p>
       💻 Si estás en el navegador:<br>
       <a href="https://www.metrikpadel.com/activar-cuenta/{{ uid }}/{{ token }}">Verificar desde la Web</a>

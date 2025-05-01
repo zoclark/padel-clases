@@ -8,6 +8,7 @@ import PanelOrganizador from "./pages/PanelOrganizador";
 import PanelProfesor from "./pages/PanelProfesor";
 import ProtectedRoute from "./components/ProtectedRoute";
 import LoginRouteWrapper from "./components/LoginRouteWrapper";
+import ActivarCuenta from "./pages/ActivarCuenta";
 
 import { AuthProvider, AuthContext } from "@/contexts/AuthContext";
 import { useContext } from "react";
@@ -28,6 +29,9 @@ function AppRoutes() {
       <Route path="/" element={<Landing />} />
       <Route path="/registro" element={<Registro />} />
       <Route path="/entrenamiento" element={<Entrenamiento />} />
+
+      {/* Enlace de verificación web */}
+      <Route path="/activar-cuenta/:uid/:token" element={<ActivarCuenta />} />
 
       {/* 🔒 ruta login protegida con el wrapper robusto */}
       <Route path="/login" element={<LoginRouteWrapper />} />

@@ -12,6 +12,9 @@ export default defineConfig(({ mode }) => {
       outDir: '../backend/staticfiles',
       assetsDir: 'assets',
       emptyOutDir: true,
+      rollupOptions: {
+        input: path.resolve(__dirname, 'index.html'), // << ESTA LÍNEA
+      },
     },
     resolve: {
       alias: {
