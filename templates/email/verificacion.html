@@ -1,10 +1,12 @@
+<!-- templates/email/verificacion.html -->
 <html>
   <body>
     <p>Hola {{ user.username }},</p>
     <p>Gracias por registrarte en Metrik Padel. Por favor verifica tu correo haciendo clic en el siguiente enlace:</p>
     <p>
-      <a href="{{ domain }}/activar/{{ uid }}/{{ token }}/">Verificar mi cuenta</a>
+      <a href="{{ activation_link }}">Verificar mi cuenta</a>
     </p>
     <p>Si tú no solicitaste esta cuenta, puedes ignorar este correo.</p>
+    <p>¡Nos vemos en la pista! 🎾</p>
   </body>
 </html>

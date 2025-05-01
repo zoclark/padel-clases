@@ -6,12 +6,16 @@ from django.utils.encoding import force_bytes
 from django.contrib.auth.tokens import default_token_generator
 from django.template.loader import render_to_string
 
-def send_verification_email(user):
+def send_verification_email(user, origen="web"):
     uid = urlsafe_base64_encode(force_bytes(user.pk))
     token = default_token_generator.make_token(user)
-    domain = "https://www.metrikpadel.com"
 
-    activation_link = f"{domain}/api/activar/{uid}/{token}/"
+    if origen == "app":
+        base_url = "metrikpadel://activar-cuenta"
+    else:
+        base_url = "https://www.metrikpadel.com/activar-cuenta"
+
+    activation_link = f"{base_url}/{uid}/{token}"
 
     subject = "Activa tu cuenta en Metrik Padel"
     message = (
@@ -25,9 +29,7 @@ def send_verification_email(user):
 
     html_message = render_to_string("email/verificacion.html", {
         "user": user,
-        "uid": uid,
-        "token": token,
-        "domain": domain + "/api"
+        "activation_link": activation_link
     })
 
     send_mail(
