@@ -18,6 +18,8 @@ from reservas.views import (
 )
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from reservas.views_auth import RegistroConVerificacionView, ActivarCuentaView
+from reservas.views import resend_verification_email
+
 urlpatterns = [
     # Auth / Perfil
     
@@ -29,7 +31,7 @@ urlpatterns = [
     path("push-token/", guardar_push_token),
     path("registro/", RegistroConVerificacionView.as_view(), name="registro_verificado"),
     path("activar/<uidb64>/<token>/", ActivarCuentaView.as_view(), name="activar_cuenta"),
-
+    path("resend-verification-email/", resend_verification_email),
     # Entrenamientos / Recursos / Reservas
     path("historial/", historial_entrenamientos),
     path("recursos-alumno/", recursos_alumno),

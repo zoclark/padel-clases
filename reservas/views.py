@@ -19,7 +19,7 @@ from .serializers import (
     AfinidadSerializer, UsuarioPerfilSerializer, AlumnoPerfilEvolucionSerializer
 )
 from .utils_stats import validate_stats, get_pool_for_level, get_level_ranges, get_stats_list
-
+from reservas.utils_email import send_verification_email
 # --- Import del módulo de emparejamientos ---
 from .pairings import generar_emparejamientos
 
@@ -35,8 +35,10 @@ def registro_usuario(request):
             username=datos["username"],
             email=datos["email"],
             password=datos["password"],
-            rol="alumno"
+            rol="alumno",
+            is_active=False  # Aún no está verificado
         )
+        send_verification_email(usuario)
         print("✅ Usuario creado desde API:", usuario.username)
         return Response({"mensaje": f"Usuario '{usuario.username}' creado correctamente"}, status=201)
     except Exception as e:
@@ -563,3 +565,18 @@ def enviar_notificacion_push(titulo, cuerpo):
     }
     for mensaje in mensajes:
         requests.post(EXPO_URL, json=mensaje, headers=headers)
+
+
+@api_view(["POST"])
+def resend_verification_email(request):
+    email = request.data.get("email")
+    if not email:
+        return Response({"detail": "Email requerido"}, status=400)
+    try:
+        user = Usuario.objects.get(email=email)
+        if user.is_active:
+            return Response({"detail": "El usuario ya está activado."}, status=400)
+        send_verification_email(user)
+        return Response({"detail": "Correo de verificación reenviado."})
+    except Usuario.DoesNotExist:
+        return Response({"detail": "Usuario no encontrado."}, status=404)
