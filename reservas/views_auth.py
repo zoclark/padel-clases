@@ -6,8 +6,11 @@ from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.utils.encoding import force_str, force_bytes
 from django.contrib.auth.tokens import default_token_generator
 from django.conf import settings
-from reservas.models import Usuario
+from reservas.models import Usuario, PushToken
 from reservas.utils_email import send_verification_email
+import requests
+
+EXPO_PUSH_URL = "https://exp.host/--/api/v2/push/send"
 
 class RegistroConVerificacionView(APIView):
     def post(self, request):
@@ -15,14 +18,13 @@ class RegistroConVerificacionView(APIView):
         username = data.get("username")
         email = data.get("email")
         password = data.get("password")
-        origen = data.get("origen", "web")  # "web" por defecto
+        origen = data.get("origen", "web")
 
         if Usuario.objects.filter(username=username).exists():
             return Response({"detail": "El usuario ya existe."}, status=400)
         if Usuario.objects.filter(email=email).exists():
             return Response({"detail": "El email ya está registrado."}, status=400)
 
-        # Crear el usuario inactivo
         usuario = Usuario.objects.create_user(
             username=username,
             email=email,
@@ -30,7 +32,6 @@ class RegistroConVerificacionView(APIView):
             is_active=False
         )
 
-        # Enviar correo de activación
         send_verification_email(usuario, origen)
 
         return Response({
@@ -55,6 +56,29 @@ class ActivarCuentaView(APIView):
         if default_token_generator.check_token(usuario, token):
             usuario.is_active = True
             usuario.save()
+
+            # Notificación push si hay token registrado
+            try:
+                push_token = PushToken.objects.get(user=usuario).token
+                payload = {
+    "to": push_token,
+    "sound": "default",
+    "title": "✅ Cuenta activada",
+    "body": "Tu cuenta ha sido verificada correctamente. ¡Ya puedes usar la app!",
+    "data": {
+        "verificada": True
+    }
+}
+                headers = {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json",
+                }
+                requests.post(EXPO_PUSH_URL, json=payload, headers=headers)
+            except PushToken.DoesNotExist:
+                pass
+            except Exception as e:
+                print("❌ Error enviando push tras activación:", e)
+
             return Response({"detail": "Cuenta activada correctamente. Ya puedes iniciar sesión."})
-        else:
-            return Response({"detail": "Token inválido o expirado."}, status=400)
+
+        return Response({"detail": "Token inválido o expirado."}, status=400)

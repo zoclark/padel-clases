@@ -1,22 +1,18 @@
-import { createContext, useState, useEffect } from "react";
+import { createContext, useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "@/api/axiosConfig";
 import { toast } from "react-toastify";
-import { useContext } from "react";
-
 
 export const useAuth = () => useContext(AuthContext);
 export const AuthContext = createContext();
+
 export function AuthProvider({ children }) {
   const navigate = useNavigate();
 
-  /** ╭─ ESTADOS ──────────────────────────────────────────╮ */
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser]               = useState(null);
-  const [bootLoading, setBootLoading] = useState(true);   // solo al arrancar
-  /** ╰────────────────────────────────────────────────────╯ */
+  const [user, setUser] = useState(null);
+  const [bootLoading, setBootLoading] = useState(true);
 
-  /* ─────────────────── helpers ─────────────────── */
   const fetchUserProfile = async () => {
     try {
       const { data } = await api.get("/perfil/");
@@ -24,14 +20,28 @@ export function AuthProvider({ children }) {
       setIsAuthenticated(true);
       return true;
     } catch (err) {
-      console.warn("❌ No se pudo obtener el perfil:", err);
+      console.warn("❌ No se pudo obtener el perfil:", err);
       return false;
     }
   };
 
-  /* ───────── Verificación inicial de la sesión ───────── */
+  const checkVerificationManually = async () => {
+    try {
+      const { data } = await api.get("/perfil/");
+      if (data?.is_active) {
+        setUser(data);
+        toast.success("🎉 Cuenta activada. Ya puedes acceder al panel.");
+        navigate("/panel");
+      } else {
+        toast.info("Tu cuenta aún no está verificada.");
+      }
+    } catch (e) {
+      console.warn("🔁 Error comprobando estado de verificación:", e);
+    }
+  };
+
   useEffect(() => {
-    const accessToken  = localStorage.getItem("accessToken");
+    const accessToken = localStorage.getItem("accessToken");
     const refreshToken = localStorage.getItem("refreshToken");
 
     if (!accessToken || !refreshToken) {
@@ -55,7 +65,27 @@ export function AuthProvider({ children }) {
     })();
   }, []);
 
-  /* ───────── Refresh silencioso del token cada 4 min ───────── */
+  // 🔁 Auto-check de activación cada 30s si el usuario aún no está verificado
+  useEffect(() => {
+    if (!user || user.is_active) return;
+
+    const interval = setInterval(async () => {
+      try {
+        const { data } = await api.get("/perfil/");
+        if (data?.is_active) {
+          setUser(data);
+          toast.success("🎉 Cuenta activada. Ya puedes acceder al panel.");
+          navigate("/panel");
+          clearInterval(interval);
+        }
+      } catch (e) {
+        console.warn("🔁 Error comprobando estado de verificación:", e);
+      }
+    }, 30_000);
+
+    return () => clearInterval(interval);
+  }, [user]);
+
   useEffect(() => {
     const id = setInterval(async () => {
       const rt = localStorage.getItem("refreshToken");
@@ -64,31 +94,29 @@ export function AuthProvider({ children }) {
         const { data } = await api.post("/token/refresh/", { refresh: rt });
         localStorage.setItem("accessToken", data.access);
       } catch (e) {
-        console.error("🔁 Error refrescando token:", e);
+        console.error("🔁 Error refrescando token:", e);
       }
     }, 1000 * 60 * 4);
     return () => clearInterval(id);
   }, []);
 
-  /* ─────────────────────── login ─────────────────────── */
   const login = async (username, password) => {
     try {
       const { data } = await api.post("/token/", { username, password });
-      localStorage.setItem("accessToken",  data.access);
+      localStorage.setItem("accessToken", data.access);
       localStorage.setItem("refreshToken", data.refresh);
       const ok = await fetchUserProfile();
       if (!ok) throw new Error("No se pudo cargar el perfil del usuario.");
       navigate("/panel");
     } catch (err) {
       let msg = "Error al iniciar sesión.";
-      if (err.response?.status === 401)       msg = "Credenciales incorrectas. Inténtalo de nuevo.";
-      else if (err.response?.data?.detail)    msg = err.response.data.detail;
-      else if (err.message)                   msg = err.message;
+      if (err.response?.status === 401) msg = "Credenciales incorrectas. Inténtalo de nuevo.";
+      else if (err.response?.data?.detail) msg = err.response.data.detail;
+      else if (err.message) msg = err.message;
       return Promise.reject(msg);
     }
   };
 
-  /* ────────────────────── logout ─────────────────────── */
   const logout = (redirect = true) => {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
@@ -100,20 +128,16 @@ export function AuthProvider({ children }) {
   return (
     <AuthContext.Provider
       value={{
-        /* flags */
         isAuthenticated,
-        bootLoading,          // << reemplaza al anterior “loading”
-        /* user */
+        bootLoading,
         user,
         rol: user?.rol || null,
-        /* actions */
         login,
         logout,
+        checkVerificationManually, // ← añadido aquí
       }}
     >
       {children}
     </AuthContext.Provider>
   );
 }
-
-
