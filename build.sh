@@ -27,8 +27,8 @@ if [ "${RENDER,,}" = "true" ]; then
     # 3. NO hace falta mover nada, ya se genera en backend/staticfiles
 
     # 4. Migraciones y static files
-    python manage.py makemigrations
-    python manage.py migrate
+    python manage.py makemigrations --noinput
+    python manage.py migrate --noinput
     python manage.py collectstatic --noinput
 else
     echo "Entorno local: saltando pasos de build estático."
