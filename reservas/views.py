@@ -29,29 +29,33 @@ from .pairings import generar_emparejamientos
 
 
 # ================= REGISTRO Y PERFIL ===================
+#@api_view(["POST"])
+#def registro_usuario(request):
+#    datos = request.data
+#    try:
+#        if Usuario.objects.filter(username=datos.get("username")).exists():
+#            return Response({"error": "Usuario ya existe"}, status=400)
+#        usuario = Usuario.objects.create_user(
+#            username=datos["username"],
+#            email=datos["email"],
+#            password=datos["password"],
+#            rol="alumno",
+#            is_active=False  # Aún no está verificado
+#        )
+#        origen = datos.get("origen", "web")
+#        send_verification_email(usuario, origen)
+#        print("✅ Usuario creado desde API:", usuario.username)
+#        return Response({
+#            "mensaje": f"Usuario '{usuario.username}' creado correctamente",
+#            "email": usuario.email
+#        }, status=201)
+#    except Exception as e:
+#        print("❌ Error en el registro:", e)
+#        return Response({"error": str(e)}, status=500)
+
 @api_view(["POST"])
 def registro_usuario(request):
-    datos = request.data
-    try:
-        if Usuario.objects.filter(username=datos.get("username")).exists():
-            return Response({"error": "Usuario ya existe"}, status=400)
-        usuario = Usuario.objects.create_user(
-            username=datos["username"],
-            email=datos["email"],
-            password=datos["password"],
-            rol="alumno",
-            is_active=False  # Aún no está verificado
-        )
-        origen = datos.get("origen", "web")
-        send_verification_email(usuario, origen)
-        print("✅ Usuario creado desde API:", usuario.username)
-        return Response({
-            "mensaje": f"Usuario '{usuario.username}' creado correctamente",
-            "email": usuario.email
-        }, status=201)
-    except Exception as e:
-        print("❌ Error en el registro:", e)
-        return Response({"error": str(e)}, status=500)
+    return Response({"detail": "Este endpoint está obsoleto."}, status=410)
 
 
 @api_view(["GET"])

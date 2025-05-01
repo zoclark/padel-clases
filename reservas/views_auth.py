@@ -2,15 +2,13 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from django.utils.http import urlsafe_base64_decode
-from django.utils.encoding import force_str
+from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
+from django.utils.encoding import force_str, force_bytes
 from django.contrib.auth.tokens import default_token_generator
 from django.conf import settings
-from .models import Usuario
+from reservas.models import Usuario
 from reservas.utils_email import send_verification_email
-from django.utils.http import urlsafe_base64_encode
-from django.utils.encoding import force_bytes
-from django.contrib.auth.tokens import default_token_generator
+
 class RegistroConVerificacionView(APIView):
     def post(self, request):
         data = request.data
@@ -24,6 +22,7 @@ class RegistroConVerificacionView(APIView):
         if Usuario.objects.filter(email=email).exists():
             return Response({"detail": "El email ya está registrado."}, status=400)
 
+        # Crear el usuario inactivo
         usuario = Usuario.objects.create_user(
             username=username,
             email=email,
@@ -31,15 +30,15 @@ class RegistroConVerificacionView(APIView):
             is_active=False
         )
 
+        # Enviar correo de activación
         send_verification_email(usuario, origen)
 
         return Response({
-    "detail": "Se ha enviado un email de activación.",
-    "email": usuario.email,
-    "uid": urlsafe_base64_encode(force_bytes(usuario.pk)),
-    "token": default_token_generator.make_token(usuario)
-}, status=201)
-
+            "detail": "Se ha enviado un email de activación.",
+            "email": usuario.email,
+            "uid": urlsafe_base64_encode(force_bytes(usuario.pk)),
+            "token": default_token_generator.make_token(usuario)
+        }, status=201)
 
 
 class ActivarCuentaView(APIView):
