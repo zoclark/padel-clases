@@ -10,27 +10,21 @@ def send_verification_email(user, origen="web"):
     uid = urlsafe_base64_encode(force_bytes(user.pk))
     token = default_token_generator.make_token(user)
 
-    if origen == "app":
-        base_url = "metrikpadel://activar-cuenta"
-    else:
-        base_url = "https://www.metrikpadel.com/activar-cuenta"
-
-    # Añadimos /index.jsx para compatibilidad con expo-router
-    activation_link = f"{base_url}/{uid}/{token}/index.jsx"
-
     subject = "Activa tu cuenta en Metrik Padel"
     message = (
         f"Hola {user.username},\n\n"
         "Gracias por registrarte en Metrik Padel.\n\n"
-        "Por favor haz clic en el siguiente enlace para activar tu cuenta:\n\n"
-        f"{activation_link}\n\n"
+        "Para activar tu cuenta:\n"
+        f"- App: metrikpadel://activar-cuenta/{uid}/{token}\n"
+        f"- Web: https://www.metrikpadel.com/activar-cuenta/{uid}/{token}\n\n"
         "Si no te registraste, puedes ignorar este correo.\n\n"
         "¡Nos vemos en la pista! 🎾"
     )
 
     html_message = render_to_string("email/verificacion.html", {
         "user": user,
-        "activation_link": activation_link
+        "uid": uid,
+        "token": token,
     })
 
     send_mail(
