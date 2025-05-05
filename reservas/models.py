@@ -7,7 +7,6 @@ from datetime import timedelta
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.contrib.auth import get_user_model
 
-# Usuario personalizado
 class Usuario(AbstractUser):
     ROL_CHOICES = (
         ("alumno", "Alumno"),
@@ -42,20 +41,23 @@ class Usuario(AbstractUser):
     rol = models.CharField(max_length=20, choices=ROL_CHOICES, default="alumno")
     genero = models.CharField(max_length=10, choices=GENERO_CHOICES, default="hombre")
     
-    # Nuevos campos personales
     fecha_nacimiento = models.DateField(null=True, blank=True)
     telefono = models.CharField(max_length=20, blank=True)
     localidad = models.CharField(max_length=100, blank=True)
     municipio = models.CharField(max_length=100, blank=True)
 
-    # Campo onboarding
     onboarding_completado = models.BooleanField(default=False)
 
-    # Nuevo: requiere verificación de email
+    # Activación por email
     is_active = models.BooleanField(default=False, help_text="El usuario debe activar su cuenta vía email.")
 
     def __str__(self):
         return self.username
+
+    @property
+    def is_verified(self):
+        """Campo explícito para indicar si la cuenta fue verificada por email."""
+        return self.is_active
 
 
 # Clase creada por un profesor

@@ -72,10 +72,14 @@ class AlumnoPerfilSerializer(serializers.ModelSerializer):
     municipio = serializers.CharField(source="usuario.municipio", read_only=True)
     email = serializers.EmailField(source="usuario.email", read_only=True)
     onboarding_completado = serializers.BooleanField(source="usuario.onboarding_completado", read_only=True)
+    is_verified = serializers.SerializerMethodField()
 
     class Meta:
         model = AlumnoPerfil
         fields = "__all__"
+
+    def get_is_verified(self, obj):
+        return obj.usuario.is_verified
 
 # --- Entrenamientos ---
 class TrainingSessionSerializer(serializers.ModelSerializer):
@@ -163,6 +167,8 @@ class PozoSerializer(serializers.ModelSerializer):
 
 # --- Perfil de usuario (otros endpoints) ---
 class UsuarioPerfilSerializer(serializers.ModelSerializer):
+    is_verified = serializers.SerializerMethodField()
+
     class Meta:
         model = Usuario
         fields = [
@@ -176,9 +182,13 @@ class UsuarioPerfilSerializer(serializers.ModelSerializer):
             "localidad",
             "municipio",
             "onboarding_completado",
+            "is_verified",
         ]
         read_only_fields = ["username", "email"]
 
+    def get_is_verified(self, obj):
+        return obj.is_verified
+    
 # --- Evolución de perfil de alumno ---
 class AlumnoPerfilEvolucionSerializer(serializers.ModelSerializer):
     class Meta:

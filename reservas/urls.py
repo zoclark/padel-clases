@@ -1,5 +1,3 @@
-# reservas/urls.py
-
 from django.contrib import admin
 from django.urls import path, include, re_path
 from django.conf import settings
@@ -14,7 +12,8 @@ from reservas.views import (
     importar_participantes_excel,
     historial_evolucion_stats, guardar_evolucion_stats,
     onboarding_perfil_alumno, completar_onboarding, guardar_push_token,
-    FrontendAppView
+    FrontendAppView,
+    estado_verificacion,                 # ★ ➊ importamos la vista pública
 )
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from reservas.views_auth import RegistroConVerificacionView, ActivarCuentaView
@@ -22,7 +21,6 @@ from reservas.views import resend_verification_email
 
 urlpatterns = [
     # Auth / Perfil
-    
     path("token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("perfil/", perfil_usuario),
@@ -31,8 +29,8 @@ urlpatterns = [
     path("registro/", RegistroConVerificacionView.as_view(), name="registro_verificado"),
     path("activar/<uidb64>/<token>/", ActivarCuentaView.as_view(), name="activar_cuenta"),
     path("resend-verification-email/", resend_verification_email),
-    
-    
+    path("estado-verificacion/", estado_verificacion, name="estado-verificacion"),  # ★ ➋ nueva ruta
+
     # Entrenamientos / Recursos / Reservas
     path("historial/", historial_entrenamientos),
     path("recursos-alumno/", recursos_alumno),
@@ -46,7 +44,7 @@ urlpatterns = [
     path("pozos/crear/", crear_pozo),
     path("pozos/<int:pozo_id>/", detalle_pozo, name="detalle_pozo"),
     path("pozos/<int:pozo_id>/participantes/", participantes_pozo),
-    path("pozos/<int:pozo_id>/pairings/", emparejamiento_pozo, name="pozo_pairings"),  # <-- endpoint de emparejamientos
+    path("pozos/<int:pozo_id>/pairings/", emparejamiento_pozo, name="pozo_pairings"),
     path("pozos/participantes/agregar/", agregar_participante),
     path("pozos/participantes/<int:participante_id>/", actualizar_participante, name="actualizar_participante"),
     path("pozos/participantes/<int:participante_id>/eliminar/", eliminar_participante, name="eliminar_participante"),

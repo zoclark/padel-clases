@@ -8,7 +8,7 @@ import os
 from pathlib import Path
 import dj_database_url
 from dotenv import load_dotenv, dotenv_values
-
+from datetime import timedelta
 # BASE_DIR
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -70,6 +70,16 @@ INSTALLED_APPS = [
 ]
 
 MEDIA_URL = '/media/'
+
+# === JWT AUTENTICACION TIEMPO ===
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),      # Puedes mantenerlo corto para seguridad
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=30),       # 🔁 Aquí alargas la sesión
+    'ROTATE_REFRESH_TOKENS': True,                      # (opcional) cambia el refresh cada vez que se use
+    'BLACKLIST_AFTER_ROTATION': False,                  # True si usas lista negra (no parece tu caso)
+    'AUTH_HEADER_TYPES': ('Bearer',),
+}
+
 
 # === MIDDLEWARE ===
 MIDDLEWARE = [

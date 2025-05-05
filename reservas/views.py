@@ -3,15 +3,16 @@
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes, parser_classes
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.parsers import MultiPartParser
+from rest_framework.permissions import IsAuthenticated, AllowAny 
 import random
 from datetime import timedelta, date
 import pandas as pd
 from django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import force_str
 from django.contrib.auth.tokens import default_token_generator
-
+# utils DRF / Django
+from rest_framework.parsers import MultiPartParser
+from django.shortcuts import get_object_or_404 
 
 from .models import (
     Usuario, AlumnoPerfil, TrainingSession, RecursoAlumno,
@@ -29,47 +30,51 @@ from .pairings import generar_emparejamientos
 
 
 # ================= REGISTRO Y PERFIL ===================
+
 @api_view(["POST"])
 def registro_usuario(request):
     datos = request.data
     try:
         if Usuario.objects.filter(username=datos.get("username")).exists():
             return Response({"error": "Usuario ya existe"}, status=400)
+        
         usuario = Usuario.objects.create_user(
             username=datos["username"],
             email=datos["email"],
             password=datos["password"],
-            rol="alumno",
-            is_active=False  # Aún no está verificado
+            rol=datos.get("rol", "alumno"),
+            is_active=False
         )
-        origen = datos.get("origen", "web")
-        send_verification_email(usuario, origen)
+
+        # 👉 Crear perfil para cualquier rol
+        AlumnoPerfil.objects.get_or_create(usuario=usuario)
+
+        send_verification_email(usuario, datos.get("origen", "web"))
         print("✅ Usuario creado desde API:", usuario.username)
         return Response({
-    "mensaje": f"Usuario '{usuario.username}' creado correctamente",
-    "email": usuario.email
-}, status=201)
+            "mensaje": f"Usuario '{usuario.username}' creado correctamente",
+            "email": usuario.email
+        }, status=201)
+
     except Exception as e:
         print("❌ Error en el registro:", e)
         return Response({"error": str(e)}, status=500)
 
-
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def perfil_usuario(request):
+    usuario = request.user
     data = {
-        "rol": request.user.rol,
-        "onboarding_completado": request.user.onboarding_completado
+        "rol": usuario.rol,
+        "onboarding_completado": usuario.onboarding_completado
     }
-    if request.user.rol == "alumno":
-        try:
-            perfil = AlumnoPerfil.objects.get(usuario=request.user)
-            data.update(AlumnoPerfilSerializer(perfil).data)
-        except AlumnoPerfil.DoesNotExist:
-            data["error"] = "Perfil de alumno no encontrado"
-    else:
-        data.update(UsuarioPerfilSerializer(request.user).data)
+
+    # Nos aseguramos de que tenga perfil aunque no sea alumno
+    perfil, _ = AlumnoPerfil.objects.get_or_create(usuario=usuario)
+    data.update(AlumnoPerfilSerializer(perfil).data)
+
     return Response(data)
+
 
 
 # ================ ENTRENAMIENTOS =======================
@@ -589,3 +594,22 @@ def resend_verification_email(request):
     except Usuario.DoesNotExist:
         return Response({"detail": "Usuario no encontrado."}, status=404)
     
+# ───────────────────────────────────────────────────────────
+#  VISTA PÚBLICA  estado_verificacion
+# ───────────────────────────────────────────────────────────
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def estado_verificacion(request):
+    """
+    GET /estado-verificacion/?email=foo@bar.com
+    Devuelve siempre 200 con {"is_verified": true|false}.
+    """
+    email = request.query_params.get('email')
+    if not email:
+        return Response({"detail": "Se requiere el parámetro email"}, status=400)
+
+    e = email.strip().lower()
+    # Búsqueda case-insensitive; si no lo encuentra, user será None
+    user = Usuario.objects.filter(email__iexact=e).first()
+    # is_verified es un alias de is_active en el modelo
+    return Response({"is_verified": bool(user and user.is_active)})
