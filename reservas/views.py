@@ -64,16 +64,24 @@ def registro_usuario(request):
 @permission_classes([IsAuthenticated])
 def perfil_usuario(request):
     usuario = request.user
+
+    # Asegurar que siempre haya perfil
+    perfil, _ = AlumnoPerfil.objects.get_or_create(usuario=usuario)
+
     data = {
+        "id": usuario.id,
+        "username": usuario.username,
+        "email": usuario.email,
+        "first_name": usuario.first_name,
+        "last_name": usuario.last_name,
         "rol": usuario.rol,
+        "genero": usuario.genero,
         "onboarding_completado": usuario.onboarding_completado
     }
 
-    # Nos aseguramos de que tenga perfil aunque no sea alumno
-    perfil, _ = AlumnoPerfil.objects.get_or_create(usuario=usuario)
     data.update(AlumnoPerfilSerializer(perfil).data)
-
     return Response(data)
+
 
 
 
