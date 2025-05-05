@@ -37,7 +37,8 @@ class Usuario(AbstractUser):
             'unique': _('Ya existe una cuenta con este e-mail.'),
         }
     )
-
+    last_verification_sent = models.DateTimeField(null=True, blank=True)
+    perfil_privado = models.BooleanField(default=False, help_text="Si está activado, solo tus amigos pueden ver tu perfil.")
     rol = models.CharField(max_length=20, choices=ROL_CHOICES, default="alumno")
     genero = models.CharField(max_length=10, choices=GENERO_CHOICES, default="hombre")
     
@@ -338,3 +339,45 @@ class PushToken(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.token}"
+
+
+class Amistad(models.Model):
+    de_usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="amistades_enviadas"
+    )
+    a_usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="amistades_recibidas"
+    )
+    estado = models.CharField(
+        max_length=10,
+        choices=[
+            ("pendiente", "Pendiente"),
+            ("aceptada", "Aceptada"),
+            ("bloqueada", "Bloqueada")
+        ],
+        default="pendiente"
+    )
+    fecha_solicitud = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("de_usuario", "a_usuario")
+        verbose_name = "Amistad"
+        verbose_name_plural = "Amistades"
+
+    def __str__(self):
+        return f"{self.de_usuario.username} → {self.a_usuario.username} ({self.estado})"
+    
+class Notificacion(models.Model):
+    usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name="notificaciones")
+    titulo = models.CharField(max_length=255)
+    cuerpo = models.TextField()
+    tipo = models.CharField(max_length=50, blank=True, null=True)  # ej: "amistad"
+    leida = models.BooleanField(default=False)
+    fecha = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"[{self.tipo or 'notificación'}] {self.titulo} → {self.usuario.username}"

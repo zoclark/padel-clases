@@ -188,9 +188,25 @@ class UsuarioPerfilSerializer(serializers.ModelSerializer):
 
     def get_is_verified(self, obj):
         return obj.is_verified
+
     
 # --- Evolución de perfil de alumno ---
 class AlumnoPerfilEvolucionSerializer(serializers.ModelSerializer):
     class Meta:
         model = AlumnoPerfilEvolucion
         fields = "__all__"
+
+
+
+# en serializers.py
+from .models import Amistad
+from rest_framework import serializers
+
+class AmistadSerializer(serializers.ModelSerializer):
+    de_usuario_username = serializers.CharField(source="de_usuario.username", read_only=True)
+    a_usuario_username = serializers.CharField(source="a_usuario.username", read_only=True)
+
+    class Meta:
+        model = Amistad
+        fields = ["id", "de_usuario", "a_usuario", "estado", "fecha_solicitud", "de_usuario_username", "a_usuario_username"]
+        read_only_fields = ["estado", "fecha_solicitud", "de_usuario"]

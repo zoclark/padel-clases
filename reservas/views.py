@@ -248,17 +248,21 @@ def emparejamiento_pozo(request, pozo_id):
 def agregar_participante(request):
     data = request.data.copy()
 
-    if request.user.is_authenticated:
+    usuario_payload = data.get("usuario")
+
+    # 🛡️ Control de asignación de usuario según el rol
+    if usuario_payload is not None:
+        if str(usuario_payload) == str(request.user.id):
+            data["usuario"] = request.user.id
+        else:
+            return Response({"error": "No tienes permiso para inscribir a otro usuario."}, status=403)
+    else:
         if request.user.rol == "alumno":
             data["usuario"] = request.user.id
         else:
-            usuario_payload = data.get("usuario")
-            if usuario_payload and str(usuario_payload) == str(request.user.id):
-                data["usuario"] = request.user.id
-            else:
-                data["usuario"] = None
+            data["usuario"] = None  # organizador apuntando a jugador no registrado
 
-    # normalizaciones
+    # Normalización de campos
     for campo in ("nombre", "genero", "mano_dominante"):
         if campo in data and isinstance(data[campo], str):
             data[campo] = data[campo].strip().lower()
@@ -319,7 +323,6 @@ def agregar_participante(request):
         return Response(serializer.data, status=201)
 
     return Response(serializer.errors, status=400)
-
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
@@ -554,7 +557,7 @@ def completar_onboarding(request):
 
 
 
-from .models import PushToken
+
 import requests
 
 EXPO_URL = "https://exp.host/--/api/v2/push/send"
@@ -569,39 +572,70 @@ def guardar_push_token(request):
     return Response({"mensaje": "Token guardado correctamente"})
 
 
-def enviar_notificacion_push(titulo, cuerpo):
-    tokens = PushToken.objects.values_list("token", flat=True)
-    mensajes = [
-        {
-            "to": token,
-            "sound": "default",
-            "title": titulo,
-            "body": cuerpo,
-        }
-        for token in tokens
-    ]
-    headers = {
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-    }
-    for mensaje in mensajes:
-        requests.post(EXPO_URL, json=mensaje, headers=headers)
+from .models import PushToken, Notificacion
 
+
+def enviar_notificacion_push(titulo, cuerpo, usuarios=None, tipo=None):
+    """
+    Envía notificaciones push y crea registros persistentes.
+    
+    :param titulo: Título de la notificación
+    :param cuerpo: Cuerpo del mensaje
+    :param usuarios: Lista opcional de objetos Usuario
+    :param tipo: Tipo opcional para categorizar la notificación (ej. "amistad", "pozo", etc.)
+    """
+    qs = PushToken.objects.filter(user__in=usuarios) if usuarios else PushToken.objects.all()
+    tokens = qs.values_list("token", flat=True)
+
+    mensajes = [{
+        "to": token,
+        "sound": "default",
+        "title": titulo,
+        "body": cuerpo
+    } for token in tokens]
+
+    headers = {"Content-Type": "application/json", "Accept": "application/json"}
+    for mensaje in mensajes:
+        try:
+            requests.post(EXPO_URL, json=mensaje, headers=headers)
+        except Exception as e:
+            print(f"❌ Error enviando push: {e}")
+
+    # También registrar como notificación persistente
+    usuarios_target = usuarios if usuarios else [t.user for t in qs]
+    for user in usuarios_target:
+        Notificacion.objects.create(
+            usuario=user,
+            titulo=titulo,
+            cuerpo=cuerpo,
+            tipo=tipo
+        )
+
+from django.utils import timezone
+from datetime import timedelta
 
 @api_view(["POST"])
 def resend_verification_email(request):
     email = request.data.get("email")
     if not email:
         return Response({"detail": "Email requerido"}, status=400)
+    
     try:
         user = Usuario.objects.get(email=email)
         if user.is_active:
             return Response({"detail": "El usuario ya está activado."}, status=400)
+
+        # ✅ ANTI-SPAM: máximo una vez cada 5 minutos
+        if user.last_verification_sent and timezone.now() - user.last_verification_sent < timedelta(minutes=5):
+            return Response({"detail": "Ya se ha enviado un correo recientemente. Inténtalo en unos minutos."}, status=429)
+
         send_verification_email(user)
+        user.last_verification_sent = timezone.now()
+        user.save(update_fields=["last_verification_sent"])
         return Response({"detail": "Correo de verificación reenviado."})
+    
     except Usuario.DoesNotExist:
         return Response({"detail": "Usuario no encontrado."}, status=404)
-    
 # ───────────────────────────────────────────────────────────
 #  VISTA PÚBLICA  estado_verificacion
 # ───────────────────────────────────────────────────────────
@@ -621,3 +655,168 @@ def estado_verificacion(request):
     user = Usuario.objects.filter(email__iexact=e).first()
     # is_verified es un alias de is_active en el modelo
     return Response({"is_verified": bool(user and user.is_active)})
+
+
+
+# en views.py
+from rest_framework import generics, permissions, status
+from rest_framework.response import Response
+from .models import Amistad, Usuario
+from .serializers import AmistadSerializer
+from django.shortcuts import get_object_or_404
+from django.db import models
+
+class EnviarSolicitudAmistadView(generics.CreateAPIView):
+    serializer_class = AmistadSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        receptor_username = request.data.get("a_usuario")
+        if not receptor_username:
+            return Response({"detail": "Debes indicar a qué usuario enviar la solicitud."}, status=400)
+
+        receptor = get_object_or_404(Usuario, username=receptor_username)
+
+        if receptor == request.user:
+            return Response({"detail": "No puedes enviarte una solicitud a ti mismo."}, status=400)
+
+        if Amistad.objects.filter(de_usuario=request.user, a_usuario=receptor).exists():
+            return Response({"detail": "Ya has enviado una solicitud."}, status=400)
+
+        Amistad.objects.create(de_usuario=request.user, a_usuario=receptor)
+        
+
+        # Crear notificación persistente
+        Notificacion.objects.create(
+            usuario=receptor,
+            titulo="Nueva solicitud de amistad",
+            cuerpo=f"{request.user.username} quiere agregarte como amigo",
+            tipo="amistad"
+        )
+
+        # Enviar notificación push al móvil
+        enviar_notificacion_push(
+            titulo="Solicitud de amistad",
+            cuerpo=f"{request.user.username} quiere agregarte como amigo",
+            usuarios=[receptor]
+        )
+        return Response({"detail": "Solicitud enviada correctamente."}, status=201)
+
+
+class GestionarSolicitudAmistadView(generics.UpdateAPIView):
+    serializer_class = AmistadSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        solicitud = get_object_or_404(
+            Amistad, id=kwargs["pk"], a_usuario=request.user, estado="pendiente"
+        )
+        accion = request.data.get("accion")
+        if accion == "aceptar":
+            solicitud.estado = "aceptada"
+            solicitud.save()
+            return Response({"detail": "Solicitud aceptada."})
+        elif accion == "rechazar":
+            solicitud.delete()
+            return Response({"detail": "Solicitud rechazada."})
+        return Response({"detail": "Acción inválida. Usa 'aceptar' o 'rechazar'."}, status=400)
+
+
+class ListaAmigosView(generics.ListAPIView):
+    serializer_class = AmistadSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        usuario = self.request.user
+        return Amistad.objects.filter(
+            estado="aceptada"
+        ).filter(models.Q(de_usuario=usuario) | models.Q(a_usuario=usuario))
+    
+
+
+
+@api_view(["DELETE"])
+@permission_classes([IsAuthenticated])
+def eliminar_amistad(request, usuario_id):
+    usuario = request.user
+    try:
+        amistad = Amistad.objects.get(
+            models.Q(de_usuario=usuario, a_usuario_id=usuario_id) |
+            models.Q(de_usuario_id=usuario_id, a_usuario=usuario),
+            estado="aceptada"
+        )
+        amistad.delete()
+        return Response({"detail": "Amistad eliminada."}, status=204)
+    except Amistad.DoesNotExist:
+        return Response({"detail": "No hay amistad con ese usuario."}, status=404)
+    
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def bloquear_usuario(request, usuario_id):
+    usuario = request.user
+    try:
+        amistad = Amistad.objects.get(
+            models.Q(de_usuario=usuario, a_usuario_id=usuario_id) |
+            models.Q(de_usuario_id=usuario_id, a_usuario=usuario)
+        )
+        amistad.estado = "bloqueada"
+        amistad.save()
+    except Amistad.DoesNotExist:
+        Amistad.objects.create(
+            de_usuario=usuario,
+            a_usuario_id=usuario_id,
+            estado="bloqueada"
+        )
+    return Response({"detail": "Usuario bloqueado correctamente."})
+
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def listar_bloqueados(request):
+    bloqueos = Amistad.objects.filter(de_usuario=request.user, estado="bloqueada")
+    data = [
+        {
+            "id": b.id,
+            "username": b.a_usuario.username,
+            "email": b.a_usuario.email
+        }
+        for b in bloqueos
+    ]
+    return Response(data)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def desbloquear_usuario(request, usuario_id):
+    try:
+        amistad = Amistad.objects.get(
+            de_usuario=request.user,
+            a_usuario_id=usuario_id,
+            estado="bloqueada"
+        )
+        amistad.delete()
+        return Response({"detail": "Usuario desbloqueado correctamente."})
+    except Amistad.DoesNotExist:
+        return Response({"detail": "No tienes bloqueado a este usuario."}, status=404)
+    
+
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def listar_notificaciones(request):
+    notis = request.user.notificaciones.order_by("-fecha")[:50]
+    data = [
+        {
+            "id": n.id,
+            "titulo": n.titulo,
+            "cuerpo": n.cuerpo,
+            "tipo": n.tipo,
+            "fecha": n.fecha,
+            "leida": n.leida
+        }
+        for n in notis
+    ]
+    return Response(data)

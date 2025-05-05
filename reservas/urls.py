@@ -18,7 +18,11 @@ from reservas.views import (
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from reservas.views_auth import RegistroConVerificacionView, ActivarCuentaView
 from reservas.views import resend_verification_email
-
+from reservas.views import (
+    listar_bloqueados, desbloquear_usuario, eliminar_amistad, bloquear_usuario, EnviarSolicitudAmistadView, GestionarSolicitudAmistadView, ListaAmigosView
+)
+from reservas.views import (
+    listar_notificaciones)
 urlpatterns = [
     # Auth / Perfil
     path("token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
@@ -52,6 +56,17 @@ urlpatterns = [
     # Afinidades
     path("afinidades/<int:usuario_id>/", afinidades_usuario),
     path("pozos/afinidades/crear/", crear_afinidad),
+
+    # Amistades
+    path("amistad/solicitar/", EnviarSolicitudAmistadView.as_view(), name="solicitar_amistad"),
+    path("amistad/gestionar/<int:pk>/", GestionarSolicitudAmistadView.as_view(), name="gestionar_amistad"),
+    path("amistad/lista/", ListaAmigosView.as_view(), name="lista_amigos"),
+    path("amistad/eliminar/<int:usuario_id>/", eliminar_amistad),
+    path("amistad/bloquear/<int:usuario_id>/", bloquear_usuario),
+    path("amistad/bloqueados/", listar_bloqueados),
+    path("amistad/desbloquear/<int:usuario_id>/", desbloquear_usuario),
+    # Notificaciones
+    path("notificaciones/", listar_notificaciones),
 
     # Importar Excel
     path("pozos/<int:pozo_id>/importar_excel/", importar_participantes_excel, name="importar_participantes_excel"),
