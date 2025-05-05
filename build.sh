@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-
+set -e
 echo ">> Mostrando todas las variables de entorno:"
 printenv
 echo ">> Fin de variables de entorno"
