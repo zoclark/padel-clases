@@ -827,14 +827,6 @@ def buscar_usuarios(request):
         .values_list("a_usuario_id", flat=True)
     )
 
-    # Usuarios excluyendo al actual y bloqueados
-    usuarios = Usuario.objects.exclude(id=usuario_actual.id).exclude(id__in=bloqueados_ids)
-
-    if q:
-        usuarios = usuarios.filter(username__icontains=q)
-
-    usuarios = usuarios[:20]
-
     # Relaciones de amistad relevantes
     amistades = Amistad.objects.filter(
         models.Q(de_usuario=usuario_actual) | models.Q(a_usuario=usuario_actual),
@@ -846,10 +838,18 @@ def buscar_usuarios(request):
         otro = a.a_usuario if a.de_usuario == usuario_actual else a.de_usuario
         estado_por_id[otro.id] = a.estado if a.estado != "pendiente" or a.de_usuario == usuario_actual else "recibida"
 
-    # Excluir usuarios con perfil privado si no son amigos
+    # Usuarios con perfil privado a excluir si no son amigos
     privados_ids = Usuario.objects.filter(perfil_privado=True).exclude(id=usuario_actual.id).values_list("id", flat=True)
     excluir_privados = [uid for uid in privados_ids if estado_por_id.get(uid) != "aceptada"]
+
+    # Filtro combinado antes del slicing
+    usuarios = Usuario.objects.exclude(id=usuario_actual.id)
+    usuarios = usuarios.exclude(id__in=bloqueados_ids)
     usuarios = usuarios.exclude(id__in=excluir_privados)
+    if q:
+        usuarios = usuarios.filter(username__icontains=q)
+
+    usuarios = usuarios[:20]  # slicing al final
 
     # Construir respuesta
     data = []
@@ -866,4 +866,3 @@ def buscar_usuarios(request):
 
     print("👉 Usuarios visibles:", [u.username for u in usuarios])
     return Response(data)
-
