@@ -248,21 +248,21 @@ def emparejamiento_pozo(request, pozo_id):
 def agregar_participante(request):
     data = request.data.copy()
 
-    usuario_payload = data.get("usuario")
-
-    # 🛡️ Control de asignación de usuario según el rol
-    if usuario_payload is not None:
-        if str(usuario_payload) == str(request.user.id):
-            data["usuario"] = request.user.id
-        else:
-            return Response({"error": "No tienes permiso para inscribir a otro usuario."}, status=403)
+    # Protección reforzada
+    if request.user.rol == "alumno":
+        data["usuario"] = request.user.id
     else:
-        if request.user.rol == "alumno":
-            data["usuario"] = request.user.id
+        # Si no es alumno (es organizador), validamos manualmente
+        usuario_payload = data.get("usuario")
+        if usuario_payload is not None:
+            if str(usuario_payload) == str(request.user.id):
+                data["usuario"] = request.user.id
+            else:
+                return Response({"error": "No tienes permiso para inscribir a otro usuario."}, status=403)
         else:
-            data["usuario"] = None  # organizador apuntando a jugador no registrado
+            data["usuario"] = None  # jugador externo sin cuenta
 
-    # Normalización de campos
+    # Normalización
     for campo in ("nombre", "genero", "mano_dominante"):
         if campo in data and isinstance(data[campo], str):
             data[campo] = data[campo].strip().lower()
@@ -271,12 +271,9 @@ def agregar_participante(request):
             data["nivel"] = int(float(data["nivel"]))
         except:
             pass
-
     if "posicion" in data:
         clave = data["posicion"].strip().lower()
-        mapping = {"reves": "reves", "drive": "drive", "ambos": "ambos"}
-        data["posicion"] = mapping.get(clave, "ambos")
-
+        data["posicion"] = {"reves": "reves", "drive": "drive", "ambos": "ambos"}.get(clave, "ambos")
     if "pista_fija" in data:
         try:
             pf = int(data["pista_fija"])
@@ -296,23 +293,15 @@ def agregar_participante(request):
         if ya_existe:
             return Response({"error": "Ya estás inscrito en este pozo."}, status=400)
 
-    # Detectar si el usuario es organizador y se está apuntando a sí mismo
-    es_organizador = False
-    if data.get("usuario") and str(data["usuario"]) == str(request.user.id) and request.user.rol == "organizador":
-        es_organizador = True
+    es_organizador = request.user.rol == "organizador" and data.get("usuario") == request.user.id
 
     serializer = ParticipantePozoSerializer(data=data)
     if serializer.is_valid():
         participante = serializer.save(es_organizador=es_organizador)
 
-        if data.get("juega_con"):
-            participante.juega_con.set(data["juega_con"])
-        if data.get("juega_contra"):
-            participante.juega_contra.set(data["juega_contra"])
-        if data.get("no_juega_con"):
-            participante.no_juega_con.set(data["no_juega_con"])
-        if data.get("no_juega_contra"):
-            participante.no_juega_contra.set(data["no_juega_contra"])
+        for campo_m2m in ("juega_con", "juega_contra", "no_juega_con", "no_juega_contra"):
+            if data.get(campo_m2m):
+                getattr(participante, campo_m2m).set(data[campo_m2m])
 
         JugadorPozo.objects.create(
             pozo=participante.pozo,
@@ -424,45 +413,47 @@ def detalle_pozo(request, pozo_id):
     return Response(serializer.errors, status=400)
 
 
-@api_view(["POST"])
+@api_view(["POST"]) 
 @permission_classes([IsAuthenticated])
 @parser_classes([MultiPartParser])
 def importar_participantes_excel(request, pozo_id):
     try:
         pozo = Pozo.objects.get(id=pozo_id)
     except Pozo.DoesNotExist:
-        return Response({"error":"Pozo no encontrado"}, status=404)
+        return Response({"error": "Pozo no encontrado"}, status=404)
 
     file = request.FILES.get("file")
     if not file:
-        return Response({"error":"Fichero no recibido"}, status=400)
+        return Response({"error": "Fichero no recibido"}, status=400)
 
     try:
         df = pd.read_excel(file)
         df.columns = [c.lower() for c in df.columns]
     except Exception as e:
-        return Response({"error":f"Error leyendo Excel: {e}"}, status=400)
+        return Response({"error": f"Error leyendo Excel: {e}"}, status=400)
 
-    expected = {"nombre","nivel","genero","posicion","mano_dominante","pista_fija"}
+    expected = {"nombre", "nivel", "genero", "posicion", "mano_dominante", "pista_fija"}
     if not expected.issubset(set(df.columns)):
-        return Response({"error":f"Columnas requeridas: {', '.join(expected)}"}, status=400)
+        return Response({"error": f"Columnas requeridas: {', '.join(expected)}"}, status=400)
 
     capacidad = pozo.num_pistas * 4
     existentes = {p.nombre.lower(): p for p in ParticipantePozo.objects.filter(pozo=pozo)}
     nuevos = []
+    errores = []
 
-    for _, row in df.iterrows():
+    for index, row in df.iterrows():
         try:
-            nombre         = str(row["nombre"]).strip().lower()
-            genero         = str(row["genero"]).strip().lower()
-            posicion       = str(row["posicion"]).strip().lower()
-            mano           = str(row["mano_dominante"]).strip().lower()
-            pista_fija     = row.get("pista_fija")
-            pista_fija     = int(pista_fija) if pd.notnull(pista_fija) else None
-            nivel          = int(row.get("nivel") or 0)
-            genero         = genero if genero in ["hombre","mujer"] else "hombre"
-            posicion       = posicion if posicion in ["reves","drive","ambos"] else "ambos"
-            mano           = mano if mano in ["diestro","zurdo"] else "diestro"
+            nombre = str(row["nombre"]).strip().lower()
+            genero = str(row["genero"]).strip().lower()
+            posicion = str(row["posicion"]).strip().lower()
+            mano = str(row["mano_dominante"]).strip().lower()
+            pista_fija = row.get("pista_fija")
+            pista_fija = int(pista_fija) if pd.notnull(pista_fija) else None
+            nivel = int(row.get("nivel") or 0)
+
+            genero = genero if genero in ["hombre", "mujer"] else "hombre"
+            posicion = posicion if posicion in ["reves", "drive", "ambos"] else "ambos"
+            mano = mano if mano in ["diestro", "zurdo"] else "diestro"
 
             datos = dict(
                 pozo=pozo,
@@ -476,21 +467,23 @@ def importar_participantes_excel(request, pozo_id):
 
             p_exist = existentes.get(nombre)
             if p_exist:
-                for k,v in datos.items():
+                for k, v in datos.items():
                     setattr(p_exist, k, v)
                 p_exist.save()
             else:
                 nuevos.append(datos)
 
         except Exception as e:
-            return Response({"error":f"Error en fila '{row.get('nombre')}': {e}"}, status=400)
+            errores.append(f"Fila {index + 2} ('{row.get('nombre', '')}'): {e}")
 
-    if len(existentes)+len(nuevos) > capacidad:
-        return Response({"error":f"Excede capacidad ({capacidad})"}, status=400)
+    if len(existentes) + len(nuevos) > capacidad:
+        return Response({"error": f"Excede capacidad del pozo ({capacidad})"}, status=400)
 
     ParticipantePozo.objects.bulk_create([ParticipantePozo(**d) for d in nuevos])
-    serializer = ParticipantePozoSerializer(ParticipantePozo.objects.filter(pozo=pozo), many=True)
-    return Response(serializer.data, status=201)
+    participantes = ParticipantePozo.objects.filter(pozo=pozo)
+    serializer = ParticipantePozoSerializer(participantes, many=True)
+
+    return Response({"datos": serializer.data, "errores": errores}, status=207 if errores else 201)
 
 
 # ================= PERFIL / EVOLUCIÓN ====================
@@ -820,3 +813,57 @@ def listar_notificaciones(request):
         for n in notis
     ]
     return Response(data)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def buscar_usuarios(request):
+    q = request.query_params.get("q", "").strip().lower()
+    usuario_actual = request.user
+
+    # IDs de usuarios bloqueados por el actual
+    bloqueados_ids = set(
+        Amistad.objects.filter(de_usuario=usuario_actual, estado="bloqueada")
+        .values_list("a_usuario_id", flat=True)
+    )
+
+    # Usuarios excluyendo al actual y bloqueados
+    usuarios = Usuario.objects.exclude(id=usuario_actual.id).exclude(id__in=bloqueados_ids)
+
+    if q:
+        usuarios = usuarios.filter(username__icontains=q)
+
+    usuarios = usuarios[:20]
+
+    # Relaciones de amistad relevantes
+    amistades = Amistad.objects.filter(
+        models.Q(de_usuario=usuario_actual) | models.Q(a_usuario=usuario_actual),
+        estado__in=["aceptada", "pendiente", "bloqueada"]
+    )
+
+    estado_por_id = {}
+    for a in amistades:
+        otro = a.a_usuario if a.de_usuario == usuario_actual else a.de_usuario
+        estado_por_id[otro.id] = a.estado if a.estado != "pendiente" or a.de_usuario == usuario_actual else "recibida"
+
+    # Excluir usuarios con perfil privado si no son amigos
+    privados_ids = Usuario.objects.filter(perfil_privado=True).exclude(id=usuario_actual.id).values_list("id", flat=True)
+    excluir_privados = [uid for uid in privados_ids if estado_por_id.get(uid) != "aceptada"]
+    usuarios = usuarios.exclude(id__in=excluir_privados)
+
+    # Construir respuesta
+    data = []
+    for u in usuarios:
+        estado = estado_por_id.get(u.id)
+        data.append({
+            "id": u.id,
+            "username": u.username,
+            "email": u.email,
+            "esAmigo": estado == "aceptada",
+            "solicitudEnviada": estado == "pendiente",
+            "estaBloqueado": estado == "bloqueada"
+        })
+
+    print("👉 Usuarios visibles:", [u.username for u in usuarios])
+    return Response(data)
+
