@@ -67,6 +67,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework',
     'reservas',
+    'rest_framework_simplejwt.token_blacklist',  # ✅ Añade esto
 ]
 
 MEDIA_URL = '/media/'
