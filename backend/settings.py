@@ -67,6 +67,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework',
     'reservas',
+    'rest_framework_simplejwt.token_blacklist',
     ]
 
 MEDIA_URL = '/media/'
@@ -76,7 +77,7 @@ SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),      # Puedes mantenerlo corto para seguridad
     'REFRESH_TOKEN_LIFETIME': timedelta(days=30),       # 🔁 Aquí alargas la sesión
     'ROTATE_REFRESH_TOKENS': True,                      # (opcional) cambia el refresh cada vez que se use
-    'BLACKLIST_AFTER_ROTATION': False,                  # True si usas lista negra (no parece tu caso)
+    'BLACKLIST_AFTER_ROTATION': True,                  # True si usas lista negra (no parece tu caso)
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
