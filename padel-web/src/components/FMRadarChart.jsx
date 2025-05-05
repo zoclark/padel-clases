@@ -1,92 +1,113 @@
-import React from 'react';
-import { View } from 'react-native';
-import Svg, { Circle, Line, Polygon, Text as SvgText } from 'react-native-svg';
+import {
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  Radar,
+  ResponsiveContainer,
+} from "recharts";
 
-export default function RadarChart({ data = [], size = 220 }) {
-  if (!data.length) return null;
+/**
+ * "skills" es un array de objetos del tipo:
+ * [ { skill: "Físico", value: 50 }, { skill: "Ataque", value: 75 }, ... ]
+ * donde "value" va de 0 a 100.
+ */
+export default function FMRadarChart({ data }) {
+  if (!data || data.length === 0) return null;
 
-  const center = size / 2;
-  const radius = size * 0.35;
-  const angleSlice = (2 * Math.PI) / data.length;
+  const chartData = data.map((s) => ({
+    skill: s.skill,
+    ring20: 20,
+    ring40: 40,
+    ring60: 60,
+    ring80: 80,
+    ring100: 100,
+    user: s.value,
+  }));
 
-  const getPoint = (angle, value, max = 100) => {
-    const r = (value / max) * radius;
-    return {
-      x: center + r * Math.sin(angle),
-      y: center - r * Math.cos(angle),
-    };
-  };
-
-  const backgroundPolygons = [20, 40, 60, 80, 100].map((lvl) =>
-    data.map((_, i) => {
-      const angle = i * angleSlice;
-      return getPoint(angle, lvl);
-    })
-  );
-
-  const userPoints = data.map((item, i) => {
-    const angle = i * angleSlice;
-    return getPoint(angle, item.valor);
-  });
-
+  // 2) El orden en que definamos los <Radar> determina cuál queda "encima".
+  //    Queremos dibujar primero el anillo 20 (pequeño) y luego 40..100.
+  //    Al final, dibujamos el "user".
   return (
-    <View style={{ width: size, height: size }}>
-      <Svg width={size} height={size}>
-        {/* Background circles or polygons */}
-        {backgroundPolygons.map((ring, idx) => (
-          <Polygon
-            key={idx}
-            points={ring.map(p => `${p.x},${p.y}`).join(' ')}
-            fill="none"
-            stroke="#ccc"
-            strokeOpacity={0.15}
-          />
-        ))}
-
-        {/* Lines from center to each axis */}
-        {data.map((_, i) => {
-          const angle = i * angleSlice;
-          const { x, y } = getPoint(angle, 100);
-          return (
-            <Line
-              key={`line-${i}`}
-              x1={center}
-              y1={center}
-              x2={x}
-              y2={y}
-              stroke="#999"
-              strokeOpacity={0.2}
-            />
-          );
-        })}
-
-        {/* Labels */}
-        {data.map((item, i) => {
-          const angle = i * angleSlice;
-          const { x, y } = getPoint(angle, 110);
-          return (
-            <SvgText
-              key={`label-${i}`}
-              x={x}
-              y={y}
-              fill="#aaa"
-              fontSize="10"
-              textAnchor="middle"
-              alignmentBaseline="middle"
-            >
-              {item.nombre}
-            </SvgText>
-          );
-        })}
-
-        {/* User polygon */}
-        <Polygon
-          points={userPoints.map(p => `${p.x},${p.y}`).join(' ')}
-          fill="rgba(0,255,128,0.2)"
-          stroke="#00ff88"
-          strokeWidth="2"
+    <ResponsiveContainer width="100%" height="100%">
+      <RadarChart
+        data={chartData}
+        cx="50%"
+        cy="50%"
+        outerRadius="80%"
+        startAngle={90}
+        endAngle={-270}
+      >
+        <PolarGrid
+          stroke="#ccc"
+          strokeOpacity={0.2}
+          radialLines={true}
+          gridType="polygon"
         />
-      </Svg>
-    </View>
+        <PolarAngleAxis
+          dataKey="skill"
+          stroke="#ddd"
+          tick={{ fill: "#bbb", fontSize: 12 }}
+        />
+        <PolarRadiusAxis
+          angle={0}
+          domain={[0, 100]}
+          stroke="#999"
+          axisLine={false}
+          tick={false}
+        />
+
+        {/* 3) Cinco <Radar> de "fondo", uno para cada anillo */}
+        {/* ring20: centro (color rojizo) */}
+        <Radar
+          name="R20"
+          dataKey="ring20"
+          stroke="none"
+          fill="#ef4444"
+          fillOpacity={0.6}
+        />
+        {/* ring40: siguiente anillo (naranja) */}
+        <Radar
+          name="R40"
+          dataKey="ring40"
+          stroke="none"
+          fill="#f97316"
+          fillOpacity={0.4}
+        />
+        {/* ring60: siguiente (amarillo) */}
+        <Radar
+          name="R60"
+          dataKey="ring60"
+          stroke="none"
+          fill="#facc15"
+          fillOpacity={0.3}
+        />
+        {/* ring80: siguiente (verde claro) */}
+        <Radar
+          name="R80"
+          dataKey="ring80"
+          stroke="none"
+          fill="#84cc16"
+          fillOpacity={0.2}
+        />
+        {/* ring100: borde (verde intenso) */}
+        <Radar
+          name="R100"
+          dataKey="ring100"
+          stroke="none"
+          fill="#22c55e"
+          fillOpacity={0.1}
+        />
+
+        {/* 4) Radar final para el "user" (la figura real del usuario) */}
+        <Radar
+          name="Usuario"
+          dataKey="user"
+          stroke="#ffffff"
+          fill="#ffffff"
+          fillOpacity={0.15}
+        />
+      </RadarChart>
+    </ResponsiveContainer>
   );
 }
