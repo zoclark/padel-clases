@@ -884,7 +884,7 @@ def buscar_usuarios(request):
         sugerencias_data.append({
             "id": u.id,
             "username": u.username,
-            "foto": perfil.foto.url if perfil and perfil.foto else None,
+            "foto": perfil.usuario.foto_perfil.url if perfil and perfil.usuario.foto_perfil else None,
             "nivel": perfil.nivel if perfil else None
         })
 
