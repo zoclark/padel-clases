@@ -71,6 +71,7 @@ INSTALLED_APPS = [
     ]
 
 MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 # === JWT AUTENTICACION TIEMPO ===
 SIMPLE_JWT = {

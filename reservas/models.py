@@ -7,6 +7,8 @@ from datetime import timedelta
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.contrib.auth import get_user_model
 
+from django.core.validators import FileExtensionValidator
+
 class Usuario(AbstractUser):
     ROL_CHOICES = (
         ("alumno", "Alumno"),
@@ -48,6 +50,15 @@ class Usuario(AbstractUser):
     municipio = models.CharField(max_length=100, blank=True)
 
     onboarding_completado = models.BooleanField(default=False)
+
+    foto_perfil = models.ImageField(
+    upload_to="fotos_perfil/",
+    blank=True,
+    null=True,
+    validators=[FileExtensionValidator(["jpg", "jpeg", "png", "webp"])],
+    help_text="Foto de perfil del usuario."
+)
+
 
     # Activación por email
     is_active = models.BooleanField(default=False, help_text="El usuario debe activar su cuenta vía email.")

@@ -14,6 +14,8 @@ from django.contrib.auth.tokens import default_token_generator
 from rest_framework.parsers import MultiPartParser
 from django.shortcuts import get_object_or_404 
 
+from .pagination import UsuarioPagination
+
 from .models import (
     Usuario, AlumnoPerfil, TrainingSession, RecursoAlumno,
     Reserva, Pozo, ParticipantePozo, Afinidad, JugadorPozo, AlumnoPerfilEvolucion
@@ -815,19 +817,22 @@ def listar_notificaciones(request):
     return Response(data)
 
 
+from .pagination import UsuarioPagination
+from .serializers import AlumnoPerfilSerializer
+
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def buscar_usuarios(request):
     q = request.query_params.get("q", "").strip().lower()
     usuario_actual = request.user
+    paginador = UsuarioPagination()
 
-    # IDs de usuarios bloqueados por el actual
+    # Estado de amistad y bloqueos
     bloqueados_ids = set(
         Amistad.objects.filter(de_usuario=usuario_actual, estado="bloqueada")
         .values_list("a_usuario_id", flat=True)
     )
 
-    # Relaciones de amistad relevantes
     amistades = Amistad.objects.filter(
         models.Q(de_usuario=usuario_actual) | models.Q(a_usuario=usuario_actual),
         estado__in=["aceptada", "pendiente", "bloqueada"]
@@ -836,33 +841,159 @@ def buscar_usuarios(request):
     estado_por_id = {}
     for a in amistades:
         otro = a.a_usuario if a.de_usuario == usuario_actual else a.de_usuario
-        estado_por_id[otro.id] = a.estado if a.estado != "pendiente" or a.de_usuario == usuario_actual else "recibida"
+        estado_por_id[otro.id] = (
+            a.estado if a.estado != "pendiente" or a.de_usuario == usuario_actual else "recibida"
+        )
 
-    # Usuarios con perfil privado a excluir si no son amigos
-    privados_ids = Usuario.objects.filter(perfil_privado=True).exclude(id=usuario_actual.id).values_list("id", flat=True)
-    excluir_privados = [uid for uid in privados_ids if estado_por_id.get(uid) != "aceptada"]
-
-    # Filtro combinado antes del slicing
+    # Filtro general
     usuarios = Usuario.objects.exclude(id=usuario_actual.id)
-    usuarios = usuarios.exclude(id__in=bloqueados_ids)
-    usuarios = usuarios.exclude(id__in=excluir_privados)
     if q:
         usuarios = usuarios.filter(username__icontains=q)
 
-    usuarios = usuarios[:20]  # slicing al final
+    page = paginador.paginate_queryset(usuarios, request)
 
-    # Construir respuesta
+    perfiles = AlumnoPerfil.objects.filter(usuario__in=page)
+    perfiles_por_id = {p.usuario_id: p for p in perfiles}
+
     data = []
-    for u in usuarios:
+    for u in page:
+        perfil = perfiles_por_id.get(u.id)
         estado = estado_por_id.get(u.id)
         data.append({
             "id": u.id,
             "username": u.username,
             "email": u.email,
+            "foto": u.foto_perfil.url if u.foto_perfil else None,
+            "nivel": perfil.nivel if perfil else None,
             "esAmigo": estado == "aceptada",
             "solicitudEnviada": estado == "pendiente",
-            "estaBloqueado": estado == "bloqueada"
+            "estaBloqueado": estado == "bloqueada",
+            "perfil_privado": u.perfil_privado
         })
 
-    print("👉 Usuarios visibles:", [u.username for u in usuarios])
-    return Response(data)
+    # Sugerencias (cualquiera que no seas tú mismo)
+    sugerencias_lista = list(
+        Usuario.objects.exclude(id=usuario_actual.id).order_by("?")[:5]
+    )
+    perfiles_sug = AlumnoPerfil.objects.filter(usuario__in=sugerencias_lista)
+    perfiles_sug_por_id = {p.usuario_id: p for p in perfiles_sug}
+
+    sugerencias_data = []
+    for u in sugerencias_lista:
+        perfil = perfiles_sug_por_id.get(u.id)
+        sugerencias_data.append({
+            "id": u.id,
+            "username": u.username,
+            "foto": perfil.foto.url if perfil and perfil.foto else None,
+            "nivel": perfil.nivel if perfil else None
+        })
+
+    return paginador.get_paginated_response({
+        "resultados": data,
+        "sugerencias": sugerencias_data
+    })
+
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def ver_perfil_usuario(request, usuario_id):
+    actual = request.user
+    objetivo = get_object_or_404(Usuario, id=usuario_id)
+
+    if actual.id == objetivo.id:
+        # Puedes ver tu propio perfil
+        pass
+    else:
+        # Comprobación de bloqueos
+        bloqueado = Amistad.objects.filter(
+            models.Q(de_usuario=actual, a_usuario=objetivo, estado="bloqueada") |
+            models.Q(de_usuario=objetivo, a_usuario=actual, estado="bloqueada")
+        ).exists()
+        if bloqueado:
+            return Response({"detail": "Acceso denegado. Usuario bloqueado."}, status=403)
+
+        # Comprobación de privacidad
+        if objetivo.perfil_privado:
+            amistad = Amistad.objects.filter(
+                models.Q(de_usuario=actual, a_usuario=objetivo) |
+                models.Q(de_usuario=objetivo, a_usuario=actual),
+                estado="aceptada"
+            ).exists()
+            if not amistad:
+                return Response({"detail": "Este perfil es privado."}, status=403)
+
+    perfil = get_object_or_404(AlumnoPerfil, usuario=objetivo)
+    serializer = AlumnoPerfilSerializer(perfil)
+    return Response({
+    "id": objetivo.id,
+    "username": objetivo.username,
+    "email": objetivo.email,
+    "rol": objetivo.rol,
+    "genero": objetivo.genero,
+    "perfil_privado": objetivo.perfil_privado,
+    "foto_perfil": objetivo.foto_perfil.url if objetivo.foto_perfil else None,
+    "nivel": getattr(perfil, "nivel", 0),
+    "perfil": serializer.data
+})
+
+
+
+from rest_framework.decorators import api_view, permission_classes, parser_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.parsers import MultiPartParser
+from rest_framework.response import Response
+from rest_framework import status
+
+@api_view(["PUT"])
+@permission_classes([IsAuthenticated])
+@parser_classes([MultiPartParser])
+def actualizar_foto_perfil(request):
+    usuario = request.user
+    foto = request.FILES.get("foto")
+
+    if not foto:
+        return Response({"error": "No se ha enviado ninguna imagen."}, status=400)
+
+    # ✅ Validación de tamaño máximo (2 MB)
+    if foto.size > 2 * 1024 * 1024:
+        return Response({"error": "La imagen no puede superar los 2MB."}, status=400)
+
+    # ✅ Validación de tipo MIME seguro
+    if foto.content_type not in ["image/jpeg", "image/png", "image/webp"]:
+        return Response({"error": "Formato de imagen no permitido."}, status=400)
+
+    usuario.foto_perfil = foto
+    usuario.save()
+
+    return Response({
+        "mensaje": "Foto de perfil actualizada correctamente.",
+        "foto_url": request.build_absolute_uri(usuario.foto_perfil.url)
+    }, status=200)
+
+
+from django.conf import settings
+
+@api_view(["DELETE"])
+@permission_classes([IsAuthenticated])
+def eliminar_foto_perfil(request):
+    usuario = request.user
+
+    if not usuario.foto_perfil:
+        return Response({"mensaje": "No hay ninguna foto de perfil que eliminar."}, status=200)
+
+    # Ruta del archivo actual (por si quieres borrarlo físicamente)
+    ruta_archivo = usuario.foto_perfil.path
+
+    # Elimina la referencia en el modelo
+    usuario.foto_perfil.delete(save=False)
+    usuario.save()
+
+    # Intenta eliminar el archivo físico si existe
+    try:
+        if os.path.exists(ruta_archivo):
+            os.remove(ruta_archivo)
+    except Exception as e:
+        print(f"⚠️ Error al eliminar el archivo: {e}")
+
+    return Response({"mensaje": "Foto de perfil eliminada correctamente."}, status=200)

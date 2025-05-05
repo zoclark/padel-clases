@@ -19,7 +19,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from reservas.views_auth import RegistroConVerificacionView, ActivarCuentaView
 from reservas.views import resend_verification_email
 from reservas.views import (
-    buscar_usuarios, listar_bloqueados, desbloquear_usuario, eliminar_amistad, bloquear_usuario, EnviarSolicitudAmistadView, GestionarSolicitudAmistadView, ListaAmigosView
+    eliminar_foto_perfil, actualizar_foto_perfil, ver_perfil_usuario, buscar_usuarios, listar_bloqueados, desbloquear_usuario, eliminar_amistad, bloquear_usuario, EnviarSolicitudAmistadView, GestionarSolicitudAmistadView, ListaAmigosView
 )
 from reservas.views import (
     listar_notificaciones)
@@ -34,7 +34,9 @@ urlpatterns = [
     path("activar/<uidb64>/<token>/", ActivarCuentaView.as_view(), name="activar_cuenta"),
     path("resend-verification-email/", resend_verification_email),
     path("estado-verificacion/", estado_verificacion, name="estado-verificacion"),  # ★ ➋ nueva ruta
-
+    path("usuario/foto/", actualizar_foto_perfil),
+    path("perfil/foto/eliminar/", eliminar_foto_perfil, name="eliminar_foto_perfil"),
+    
     # Entrenamientos / Recursos / Reservas
     path("historial/", historial_entrenamientos),
     path("recursos-alumno/", recursos_alumno),
@@ -66,7 +68,8 @@ urlpatterns = [
     path("amistad/bloqueados/", listar_bloqueados),
     path("amistad/desbloquear/<int:usuario_id>/", desbloquear_usuario),
     path("usuarios/buscar/", buscar_usuarios),
-    
+    path("api/perfil/<int:usuario_id>/", ver_perfil_usuario),
+
     # Notificaciones
     path("notificaciones/", listar_notificaciones),
 
