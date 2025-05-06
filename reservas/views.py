@@ -702,15 +702,9 @@ class GestionarSolicitudAmistadView(generics.UpdateAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
-        solicitud = Amistad.objects.filter(
-            id=kwargs["pk"],
-            a_usuario=request.user,
-            estado="pendiente"
-        ).first()
-
-        if not solicitud:
-            return Response({"detail": "Solicitud no encontrada o ya gestionada."}, status=404)
-
+        solicitud = get_object_or_404(
+            Amistad, id=kwargs["pk"], a_usuario=request.user, estado="pendiente"
+        )
         accion = request.data.get("accion")
         if accion == "aceptar":
             solicitud.estado = "aceptada"
@@ -719,28 +713,19 @@ class GestionarSolicitudAmistadView(generics.UpdateAPIView):
         elif accion == "rechazar":
             solicitud.delete()
             return Response({"detail": "Solicitud rechazada."})
-
         return Response({"detail": "Acción inválida. Usa 'aceptar' o 'rechazar'."}, status=400)
 
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
-def lista_amigos(request):
-    usuario = request.user
-    amistades = Amistad.objects.filter(
-        estado="aceptada"
-    ).filter(models.Q(de_usuario=usuario) | models.Q(a_usuario=usuario))
 
-    amigos = []
-    for a in amistades:
-        otro = a.a_usuario if a.de_usuario == usuario else a.de_usuario
-        amigos.append({
-            "id": otro.id,
-            "username": otro.username,
-            "email": otro.email,
-            "foto": otro.foto_perfil.url if otro.foto_perfil else None
-        })
+class ListaAmigosView(generics.ListAPIView):
+    serializer_class = AmistadSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
-    return Response(amigos)
+    def get_queryset(self):
+        usuario = self.request.user
+        return Amistad.objects.filter(
+            estado="aceptada"
+        ).filter(models.Q(de_usuario=usuario) | models.Q(a_usuario=usuario))
+    
 
 
 
@@ -865,18 +850,7 @@ def buscar_usuarios(request):
         if a.estado == "pendiente" and a.de_usuario == usuario_actual:
             solicitudes_enviadas_ids.add(otro.id)
 
-    relaciones = Amistad.objects.filter(
-    models.Q(de_usuario=usuario_actual) | models.Q(a_usuario=usuario_actual)
-    ).values_list("de_usuario_id", "a_usuario_id")
-
-    ids_excluidos = set()
-    for de_id, a_id in relaciones:
-        ids_excluidos.update([de_id, a_id])
-    ids_excluidos.discard(usuario_actual.id)
-
     usuarios = Usuario.objects.exclude(id=usuario_actual.id)
-        
-    
     if q:
         usuarios = usuarios.filter(username__icontains=q)
 
@@ -902,21 +876,9 @@ def buscar_usuarios(request):
         })
 
     # Sugerencias
-    relaciones = Amistad.objects.filter(
-    models.Q(de_usuario=usuario_actual) | models.Q(a_usuario=usuario_actual)
-).values_list("de_usuario_id", "a_usuario_id")
-
-    excluir_ids = set()
-    for de_id, a_id in relaciones:
-        excluir_ids.update([de_id, a_id])
-    excluir_ids.discard(usuario_actual.id)
-
     sugerencias_lista = list(
-        Usuario.objects.exclude(id__in=excluir_ids).order_by("?")[:5]
+        Usuario.objects.exclude(id=usuario_actual.id).order_by("?")[:5]
     )
-
-
-
     perfiles_sug = AlumnoPerfil.objects.filter(usuario__in=sugerencias_lista)
     perfiles_sug_por_id = {p.usuario_id: p for p in perfiles_sug}
 
