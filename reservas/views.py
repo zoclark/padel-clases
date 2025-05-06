@@ -725,8 +725,11 @@ class ListaAmigosView(generics.ListAPIView):
         return Amistad.objects.filter(
             estado="aceptada"
         ).filter(models.Q(de_usuario=usuario) | models.Q(a_usuario=usuario))
-    
 
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context["request"] = self.request
+        return context
 
 
 @api_view(["DELETE"])

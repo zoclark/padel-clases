@@ -203,14 +203,17 @@ from .models import Amistad
 from rest_framework import serializers
 
 class AmistadSerializer(serializers.ModelSerializer):
-    de_usuario_username = serializers.CharField(source="de_usuario.username", read_only=True)
-    a_usuario_username = serializers.CharField(source="a_usuario.username", read_only=True)
+    de_usuario = UsuarioPerfilSerializer()
+    a_usuario = UsuarioPerfilSerializer()
+    usuario_actual = serializers.SerializerMethodField()
+
+    def get_usuario_actual(self, obj):
+        request = self.context.get("request")
+        return request.user.id if request else None
 
     class Meta:
         model = Amistad
-        fields = ["id", "de_usuario", "a_usuario", "estado", "fecha_solicitud", "de_usuario_username", "a_usuario_username"]
-        read_only_fields = ["estado", "fecha_solicitud", "de_usuario"]
-
+        fields = ["id", "estado", "de_usuario", "a_usuario", "usuario_actual"]
 
 # notificaciones/serializers.py
 from rest_framework import serializers
