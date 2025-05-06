@@ -2,8 +2,7 @@ from django.urls import path
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 # Vistas de autenticación
-from reservas.views_auth import RegistroConVerificacionView, ActivarCuentaView
-from reservas.views.auth_views import resend_verification_email
+from reservas.views.auth_views import resend_verification_email, RegistroConVerificacionView, ActivarCuentaView
 
 # Vistas de usuario
 from reservas.views.usuario_views import (
