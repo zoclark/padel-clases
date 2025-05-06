@@ -4,9 +4,11 @@ from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from django.db import models
 
-from ..models import Amistad, Usuario, Notificacion
-from ..serializers import AmistadSerializer
+from ..models import Amistad,Afinidad, Usuario, Notificacion
+from ..serializers import AmistadSerializer, AfinidadSerializer
 from .notificacion_views import enviar_notificacion_push
+
+from rest_framework.permissions import IsAuthenticated, AllowAny 
 
 class EnviarSolicitudAmistadView(generics.CreateAPIView):
     serializer_class = AmistadSerializer
@@ -149,3 +151,11 @@ def desbloquear_usuario(request, usuario_id):
         return Response({"detail": "Usuario desbloqueado correctamente."})
     except Amistad.DoesNotExist:
         return Response({"detail": "No tienes bloqueado a este usuario."}, status=404)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def afinidades_usuario(request, usuario_id):
+    afinidades = Afinidad.objects.filter(participante__usuario_id=usuario_id)
+    serializer = AfinidadSerializer(afinidades, many=True)
+    return Response(serializer.data)
