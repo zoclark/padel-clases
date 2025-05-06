@@ -7,7 +7,7 @@ from django.shortcuts import get_object_or_404
 import pandas as pd
 import os
 
-from ..models import Pozo, ParticipantePozo, JugadorPozo, Afinidad
+from ..models import Afinidad, Pozo, ParticipantePozo, JugadorPozo, Afinidad
 from ..serializers import ParticipantePozoSerializer, PozoSerializer, AfinidadSerializer
 from ..pairings import generar_emparejamientos
 
@@ -299,3 +299,12 @@ def importar_participantes_excel(request, pozo_id):
     serializer = ParticipantePozoSerializer(participantes, many=True)
 
     return Response({"datos": serializer.data, "errores": errores}, status=207 if errores else 201)
+
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def afinidades_usuario(request, usuario_id):
+    afinidades = Afinidad.objects.filter(participante__usuario_id=usuario_id)
+    serializer = AfinidadSerializer(afinidades, many=True)
+    return Response(serializer.data)

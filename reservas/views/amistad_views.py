@@ -4,8 +4,8 @@ from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from django.db import models
 
-from ..models import Amistad,Afinidad, Usuario, Notificacion
-from ..serializers import AmistadSerializer, AfinidadSerializer
+from ..models import Amistad, Usuario, Notificacion
+from ..serializers import AmistadSerializer
 from .notificacion_views import enviar_notificacion_push
 
 from rest_framework.permissions import IsAuthenticated, AllowAny 
