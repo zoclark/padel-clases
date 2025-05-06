@@ -308,3 +308,13 @@ def afinidades_usuario(request, usuario_id):
     afinidades = Afinidad.objects.filter(participante__usuario_id=usuario_id)
     serializer = AfinidadSerializer(afinidades, many=True)
     return Response(serializer.data)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def crear_afinidad(request):
+    serializer = AfinidadSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=201)
+    return Response(serializer.errors, status=400)

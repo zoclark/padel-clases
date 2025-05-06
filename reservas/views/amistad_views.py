@@ -152,10 +152,3 @@ def desbloquear_usuario(request, usuario_id):
     except Amistad.DoesNotExist:
         return Response({"detail": "No tienes bloqueado a este usuario."}, status=404)
 
-
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
-def afinidades_usuario(request, usuario_id):
-    afinidades = Afinidad.objects.filter(participante__usuario_id=usuario_id)
-    serializer = AfinidadSerializer(afinidades, many=True)
-    return Response(serializer.data)
