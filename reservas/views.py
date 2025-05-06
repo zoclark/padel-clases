@@ -827,7 +827,6 @@ def buscar_usuarios(request):
     usuario_actual = request.user
     paginador = UsuarioPagination()
 
-    # Estado de amistad y bloqueos
     bloqueados_ids = set(
         Amistad.objects.filter(de_usuario=usuario_actual, estado="bloqueada")
         .values_list("a_usuario_id", flat=True)
@@ -839,19 +838,23 @@ def buscar_usuarios(request):
     )
 
     estado_por_id = {}
+    solicitudes_enviadas_ids = set()  # ✅ NUEVO
     for a in amistades:
         otro = a.a_usuario if a.de_usuario == usuario_actual else a.de_usuario
-        estado_por_id[otro.id] = (
+        estado = (
             a.estado if a.estado != "pendiente" or a.de_usuario == usuario_actual else "recibida"
         )
+        estado_por_id[otro.id] = estado
 
-    # Filtro general
+        # ✅ Si es solicitud pendiente Y yo la envié
+        if a.estado == "pendiente" and a.de_usuario == usuario_actual:
+            solicitudes_enviadas_ids.add(otro.id)
+
     usuarios = Usuario.objects.exclude(id=usuario_actual.id)
     if q:
         usuarios = usuarios.filter(username__icontains=q)
 
     page = paginador.paginate_queryset(usuarios, request)
-
     perfiles = AlumnoPerfil.objects.filter(usuario__in=page)
     perfiles_por_id = {p.usuario_id: p for p in perfiles}
 
@@ -866,12 +869,13 @@ def buscar_usuarios(request):
             "foto": u.foto_perfil.url if u.foto_perfil else None,
             "nivel": perfil.nivel if perfil else None,
             "esAmigo": estado == "aceptada",
-            "solicitudEnviada": estado == "pendiente",
+            "solicitudEnviada": u.id in solicitudes_enviadas_ids,
             "estaBloqueado": estado == "bloqueada",
-            "perfil_privado": u.perfil_privado
+            "perfil_privado": u.perfil_privado,
+            "estado": estado  # ✅ Añadido campo estado explícitamente
         })
 
-    # Sugerencias (cualquiera que no seas tú mismo)
+    # Sugerencias
     sugerencias_lista = list(
         Usuario.objects.exclude(id=usuario_actual.id).order_by("?")[:5]
     )
@@ -1044,3 +1048,11 @@ def guardar_token_push(request):
     user.push_token = token  # asume que tienes ese campo en tu modelo User
     user.save()
     return Response({'success': True})
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def eliminar_notificacion(request, pk):
+    noti = get_object_or_404(Notificacion, pk=pk, usuario=request.user)
+    noti.delete()
+    return Response({"detail": "Notificación eliminada"})
