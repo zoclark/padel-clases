@@ -997,3 +997,10 @@ def eliminar_foto_perfil(request):
         print(f"⚠️ Error al eliminar el archivo: {e}")
 
     return Response({"mensaje": "Foto de perfil eliminada correctamente."}, status=200)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def marcar_notificaciones_leidas(request):
+    request.user.notificaciones.filter(leida=False).update(leida=True)
+    return Response({"mensaje": "Notificaciones marcadas como leídas"})
