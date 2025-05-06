@@ -1032,3 +1032,15 @@ def marcar_notificacion_leida(request, notificacion_id):
         return Response({"mensaje": "Notificación marcada como leída"})
     except Notificacion.DoesNotExist:
         return Response({"error": "No se encontró la notificación"}, status=404)
+    
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def guardar_token_push(request):
+    token = request.data.get('token')
+    if not token:
+        return Response({'error': 'Token no proporcionado'}, status=400)
+    
+    user = request.user
+    user.push_token = token  # asume que tienes ese campo en tu modelo User
+    user.save()
+    return Response({'success': True})

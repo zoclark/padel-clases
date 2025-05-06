@@ -210,3 +210,23 @@ class AmistadSerializer(serializers.ModelSerializer):
         model = Amistad
         fields = ["id", "de_usuario", "a_usuario", "estado", "fecha_solicitud", "de_usuario_username", "a_usuario_username"]
         read_only_fields = ["estado", "fecha_solicitud", "de_usuario"]
+
+
+# notificaciones/serializers.py
+from rest_framework import serializers
+from .models import Notificacion
+from amistad.models import Amistad  # importa tu modelo de amistad si está en otra app
+
+class NotificacionSerializer(serializers.ModelSerializer):
+    extra = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Notificacion
+        fields = ['id', 'titulo', 'cuerpo', 'tipo', 'fecha', 'leida', 'extra']
+
+    def get_extra(self, obj):
+        if obj.tipo == 'amistad':
+            amistad = Amistad.objects.filter(notificacion=obj).first()
+            if amistad:
+                return {'solicitud_id': amistad.id}
+        return {}
