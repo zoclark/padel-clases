@@ -42,6 +42,28 @@ class EnviarSolicitudAmistadView(generics.CreateAPIView):
         )
         return Response({"detail": "Solicitud enviada correctamente."}, status=201)
 
+class GestionarSolicitudAmistadView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, pk, *args, **kwargs):
+        try:
+            solicitud = Amistad.objects.get(id=pk, a_usuario=request.user)
+        except Amistad.DoesNotExist:
+            return Response({"detail": "Solicitud no encontrada o ya gestionada."}, status=404)
+
+        if solicitud.estado != "pendiente":
+            return Response({"detail": "La solicitud ya fue aceptada o rechazada."}, status=400)
+
+        accion = request.data.get("accion")
+        if accion == "aceptar":
+            solicitud.estado = "aceptada"
+            solicitud.save()
+            return Response({"detail": "Solicitud aceptada."})
+        elif accion == "rechazar":
+            solicitud.delete()
+            return Response({"detail": "Solicitud rechazada."})
+
+        return Response({"detail": "Acción inválida. Usa 'aceptar' o 'rechazar'."}, status=400)
 
 def post(self, request, *args, **kwargs):
     try:
@@ -89,7 +111,6 @@ class ListaAmigosView(generics.ListAPIView):
 
         return Response(resultado)
 
-
 @api_view(["DELETE"])
 @permission_classes([permissions.IsAuthenticated])
 def eliminar_amistad(request, pk):
@@ -102,7 +123,6 @@ def eliminar_amistad(request, pk):
         return Response({"detail": "Amistad eliminada."}, status=204)
     except Amistad.DoesNotExist:
         return Response({"detail": "Amistad no encontrada."}, status=404)
-
 
 @api_view(["POST"])
 @permission_classes([permissions.IsAuthenticated])
@@ -123,7 +143,6 @@ def bloquear_usuario(request, usuario_id):
         )
     return Response({"detail": "Usuario bloqueado correctamente."})
 
-
 @api_view(["GET"])
 @permission_classes([permissions.IsAuthenticated])
 def listar_bloqueados(request):
@@ -137,7 +156,6 @@ def listar_bloqueados(request):
         for b in bloqueos
     ]
     return Response(data)
-
 
 @api_view(["POST"])
 @permission_classes([permissions.IsAuthenticated])
@@ -170,28 +188,18 @@ def solicitudes_recibidas(request):
     return Response(data)
 
 
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def estado_solicitud_amistad(request, pk):
+    try:
+        solicitud = Amistad.objects.get(id=pk)
+        if solicitud.de_usuario != request.user and solicitud.a_usuario != request.user:
+            return Response({"detail": "No autorizado."}, status=403)
 
+        return Response({
+            "id": solicitud.id,
+            "estado": solicitud.estado
+        })
 
-
-class GestionarSolicitudAmistadView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
-
-    def post(self, request, pk, *args, **kwargs):
-        try:
-            solicitud = Amistad.objects.get(id=pk, a_usuario=request.user)
-        except Amistad.DoesNotExist:
-            return Response({"detail": "Solicitud no encontrada o ya gestionada."}, status=404)
-
-        if solicitud.estado != "pendiente":
-            return Response({"detail": "La solicitud ya fue aceptada o rechazada."}, status=400)
-
-        accion = request.data.get("accion")
-        if accion == "aceptar":
-            solicitud.estado = "aceptada"
-            solicitud.save()
-            return Response({"detail": "Solicitud aceptada."})
-        elif accion == "rechazar":
-            solicitud.delete()
-            return Response({"detail": "Solicitud rechazada."})
-
-        return Response({"detail": "Acción inválida. Usa 'aceptar' o 'rechazar'."}, status=400)
+    except Amistad.DoesNotExist:
+        return Response({"detail": "Solicitud no encontrada."}, status=404)

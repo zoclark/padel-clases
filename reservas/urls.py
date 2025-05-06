@@ -34,7 +34,7 @@ from reservas.views.pozo_views import (
 from reservas.views.amistad_views import (
     EnviarSolicitudAmistadView, GestionarSolicitudAmistadView, ListaAmigosView,
     eliminar_amistad, bloquear_usuario, desbloquear_usuario, listar_bloqueados,
-    solicitudes_recibidas
+    solicitudes_recibidas, estado_solicitud_amistad
 )
 
 # Vistas de notificaciones
@@ -98,6 +98,7 @@ urlpatterns = [
     path("amistad/bloqueados/", listar_bloqueados),
     path("amistad/desbloquear/<int:usuario_id>/", desbloquear_usuario),
     path("amistad/recibidas/", solicitudes_recibidas),
+    path("amistad/solicitud/<int:pk>/", estado_solicitud_amistad),
 
     # Usuarios
     path("usuarios/buscar/", buscar_usuarios),
