@@ -571,14 +571,6 @@ from .models import PushToken, Notificacion
 
 
 def enviar_notificacion_push(titulo, cuerpo, usuarios=None, tipo=None):
-    """
-    Envía notificaciones push y crea registros persistentes.
-    
-    :param titulo: Título de la notificación
-    :param cuerpo: Cuerpo del mensaje
-    :param usuarios: Lista opcional de objetos Usuario
-    :param tipo: Tipo opcional para categorizar la notificación (ej. "amistad", "pozo", etc.)
-    """
     qs = PushToken.objects.filter(user__in=usuarios) if usuarios else PushToken.objects.all()
     tokens = qs.values_list("token", flat=True)
 
@@ -596,9 +588,17 @@ def enviar_notificacion_push(titulo, cuerpo, usuarios=None, tipo=None):
         except Exception as e:
             print(f"❌ Error enviando push: {e}")
 
-    # También registrar como notificación persistente
     usuarios_target = usuarios if usuarios else [t.user for t in qs]
     for user in usuarios_target:
+        # ❗ Evita duplicados recientes con mismo tipo + título + cuerpo
+        if Notificacion.objects.filter(
+            usuario=user,
+            titulo=titulo,
+            cuerpo=cuerpo,
+            tipo=tipo
+        ).exists():
+            continue  # ya existe la notificación
+
         Notificacion.objects.create(
             usuario=user,
             titulo=titulo,
@@ -1004,3 +1004,19 @@ def eliminar_foto_perfil(request):
 def marcar_notificaciones_leidas(request):
     request.user.notificaciones.filter(leida=False).update(leida=True)
     return Response({"mensaje": "Notificaciones marcadas como leídas"})
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def solicitudes_recibidas(request):
+    solicitudes = Amistad.objects.filter(a_usuario=request.user, estado="pendiente")
+    data = [
+        {
+            "id": a.id,
+            "de_usuario_id": a.de_usuario.id,
+            "username": a.de_usuario.username,
+            "foto": a.de_usuario.foto_perfil.url if a.de_usuario.foto_perfil else None,
+        }
+        for a in solicitudes
+    ]
+    return Response(data)
