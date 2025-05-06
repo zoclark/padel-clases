@@ -23,10 +23,10 @@ from reservas.views.reserva_views import obtener_reservas
 # Vistas de pozos y afinidades
 from reservas.views.pozo_views import (
     crear_pozo, listar_pozos, detalle_pozo, participantes_pozo,
-    emparejamiento_pozo, agregar_participante, actualizar_participante,
-    eliminar_participante, importar_participantes_excel,
-    crear_afinidad, afinidades_usuario
+    emparejamiento_pozo, agregar_participante, actualizar_participante, eliminar_participante,
+    importar_participantes_excel
 )
+from reservas.views.reserva_views import crear_afinidad, afinidades_usuario
 
 # Vistas de amistad
 from reservas.views.amistad_views import (
