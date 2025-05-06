@@ -717,20 +717,30 @@ class GestionarSolicitudAmistadView(generics.UpdateAPIView):
 
 
 class ListaAmigosView(generics.ListAPIView):
-    serializer_class = AmistadSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-    def get_queryset(self):
-        usuario = self.request.user
-        return Amistad.objects.filter(
+    def get(self, request, *args, **kwargs):
+        usuario = request.user
+        amistades = Amistad.objects.filter(
             estado="aceptada"
-        ).filter(models.Q(de_usuario=usuario) | models.Q(a_usuario=usuario))
+        ).filter(
+            models.Q(de_usuario=usuario) | models.Q(a_usuario=usuario)
+        )
 
-    def get_serializer_context(self):
-        context = super().get_serializer_context()
-        context["request"] = self.request
-        return context
+        resultado = []
+        for amistad in amistades:
+            amigo = amistad.a_usuario if amistad.de_usuario == usuario else amistad.de_usuario
+            resultado.append({
+                "id": amistad.id,
+                "amigo": {
+                    "id": amigo.id,
+                    "username": amigo.username,
+                    "email": amigo.email,
+                    "foto": amigo.foto_perfil.url if amigo.foto_perfil else None,
+                }
+            })
 
+        return Response(resultado)
 
 @api_view(["DELETE"])
 @permission_classes([IsAuthenticated])
