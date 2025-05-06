@@ -1,33 +1,50 @@
-# Importación de path desde django.urls
-from django.urls import path, include
+from django.urls import path
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-# Importaciones de vistas
-from reservas.views import (
-    perfil_usuario, historial_entrenamientos, obtener_reservas, recursos_alumno,
-    crear_pozo, listar_pozos, detalle_pozo, participantes_pozo,
-    emparejamiento_pozo, agregar_participante, actualizar_participante, eliminar_participante,
-    afinidades_usuario, crear_afinidad,
-    importar_participantes_excel,
-    historial_evolucion_stats, guardar_evolucion_stats,
-    onboarding_perfil_alumno, completar_onboarding, guardar_push_token,
-    FrontendAppView, estado_verificacion,
+# Vistas de autenticación
+from reservas.views_auth import RegistroConVerificacionView, ActivarCuentaView
+from reservas.views.auth_views import resend_verification_email
+
+# Vistas de usuario
+from reservas.views.usuario_views import (
+    perfil_usuario, completar_onboarding, guardar_push_token,
+    actualizar_foto_perfil, eliminar_foto_perfil,
+    buscar_usuarios, ver_perfil_usuario
 )
 
-from reservas.views_auth import RegistroConVerificacionView, ActivarCuentaView
-from reservas.views import resend_verification_email
+# Vistas de entrenamiento
+from reservas.views.entrenamiento_views import historial_entrenamientos
+
+# Vistas de recursos
+from reservas.views.recurso_views import recursos_alumno
+
+# Vistas de reservas (esto está definido en `reserva_views.py`)
+from reservas.views.reserva_views import obtener_reservas
+
+# Vistas de pozos y afinidades
+from reservas.views.pozo_views import (
+    crear_pozo, listar_pozos, detalle_pozo, participantes_pozo,
+    emparejamiento_pozo, agregar_participante, actualizar_participante,
+    eliminar_participante, importar_participantes_excel,
+    crear_afinidad, afinidades_usuario
+)
+
+# Vistas de amistad
 from reservas.views.amistad_views import (
     EnviarSolicitudAmistadView, GestionarSolicitudAmistadView, ListaAmigosView,
     eliminar_amistad, bloquear_usuario, desbloquear_usuario, listar_bloqueados,
     solicitudes_recibidas
 )
-from reservas.views.notificacion_views import (
-    listar_notificaciones, marcar_notificaciones_leidas, marcar_notificacion_leida, eliminar_notificacion
-)
-from reservas.views.usuario_views import buscar_usuarios, ver_perfil_usuario
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView  # Importar JWT
-from reservas.views.usuario_views import actualizar_foto_perfil, eliminar_foto_perfil
 
-# URLs de las vistas
+# Vistas de notificaciones
+from reservas.views.notificacion_views import (
+    listar_notificaciones, marcar_notificaciones_leidas,
+    marcar_notificacion_leida, eliminar_notificacion
+)
+
+# Vistas del frontend
+from reservas.views.frontend import estado_verificacion
+
 urlpatterns = [
     # JWT
     path("token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
@@ -77,9 +94,11 @@ urlpatterns = [
     path("amistad/bloquear/<int:usuario_id>/", bloquear_usuario),
     path("amistad/bloqueados/", listar_bloqueados),
     path("amistad/desbloquear/<int:usuario_id>/", desbloquear_usuario),
+    path("amistad/recibidas/", solicitudes_recibidas),
+
+    # Usuarios
     path("usuarios/buscar/", buscar_usuarios),
     path("api/perfil/<int:usuario_id>/", ver_perfil_usuario),
-    path("amistad/recibidas/", solicitudes_recibidas),
 
     # Notificaciones
     path("notificaciones/", listar_notificaciones),
@@ -89,5 +108,4 @@ urlpatterns = [
 
     # Importar Excel
     path("pozos/<int:pozo_id>/importar_excel/", importar_participantes_excel, name="importar_participantes_excel"),
-
-    ]
+]
