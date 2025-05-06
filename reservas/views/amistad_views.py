@@ -7,7 +7,7 @@ from django.db import models
 from ..models import Amistad, Usuario, Notificacion
 from ..serializers import AmistadSerializer
 from .notificacion_views import enviar_notificacion_push
-
+from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, AllowAny 
 
 class EnviarSolicitudAmistadView(generics.CreateAPIView):
@@ -168,3 +168,30 @@ def solicitudes_recibidas(request):
         for a in solicitudes
     ]
     return Response(data)
+
+
+
+
+
+class GestionarSolicitudAmistadView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, pk, *args, **kwargs):
+        try:
+            solicitud = Amistad.objects.get(id=pk, a_usuario=request.user)
+        except Amistad.DoesNotExist:
+            return Response({"detail": "Solicitud no encontrada o ya gestionada."}, status=404)
+
+        if solicitud.estado != "pendiente":
+            return Response({"detail": "La solicitud ya fue aceptada o rechazada."}, status=400)
+
+        accion = request.data.get("accion")
+        if accion == "aceptar":
+            solicitud.estado = "aceptada"
+            solicitud.save()
+            return Response({"detail": "Solicitud aceptada."})
+        elif accion == "rechazar":
+            solicitud.delete()
+            return Response({"detail": "Solicitud rechazada."})
+
+        return Response({"detail": "Acción inválida. Usa 'aceptar' o 'rechazar'."}, status=400)
