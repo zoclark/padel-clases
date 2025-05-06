@@ -734,20 +734,16 @@ class ListaAmigosView(generics.ListAPIView):
 
 @api_view(["DELETE"])
 @permission_classes([IsAuthenticated])
-def eliminar_amistad(request, usuario_id):
+def eliminar_amistad(request, pk):
     usuario = request.user
     try:
-        amistad = Amistad.objects.get(
-            models.Q(de_usuario=usuario, a_usuario_id=usuario_id) |
-            models.Q(de_usuario_id=usuario_id, a_usuario=usuario),
-            estado="aceptada"
-        )
+        amistad = Amistad.objects.get(pk=pk)
+        if amistad.de_usuario != usuario and amistad.a_usuario != usuario:
+            return Response({"detail": "No autorizado."}, status=403)
         amistad.delete()
         return Response({"detail": "Amistad eliminada."}, status=204)
     except Amistad.DoesNotExist:
-        return Response({"detail": "No hay amistad con ese usuario."}, status=404)
-    
-
+        return Response({"detail": "Amistad no encontrada."}, status=404)
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def bloquear_usuario(request, usuario_id):

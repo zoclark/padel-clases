@@ -64,7 +64,7 @@ urlpatterns = [
     path("amistad/solicitar/", EnviarSolicitudAmistadView.as_view(), name="solicitar_amistad"),
     path("amistad/gestionar/<int:pk>/", GestionarSolicitudAmistadView.as_view(), name="gestionar_amistad"),
     path("amistad/lista/", ListaAmigosView.as_view()),  # ✅ CORRECTO
-    path("amistad/eliminar/<int:usuario_id>/", eliminar_amistad),
+    path("amistad/eliminar/<int:pk>/", eliminar_amistad),
     path("amistad/bloquear/<int:usuario_id>/", bloquear_usuario),
     path("amistad/bloqueados/", listar_bloqueados),
     path("amistad/desbloquear/<int:usuario_id>/", desbloquear_usuario),
