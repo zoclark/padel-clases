@@ -43,24 +43,25 @@ class EnviarSolicitudAmistadView(generics.CreateAPIView):
         return Response({"detail": "Solicitud enviada correctamente."}, status=201)
 
 
-class GestionarSolicitudAmistadView(generics.UpdateAPIView):
-    serializer_class = AmistadSerializer
-    permission_classes = [permissions.IsAuthenticated]
+def post(self, request, *args, **kwargs):
+    try:
+        solicitud = Amistad.objects.get(id=kwargs["pk"], a_usuario=request.user)
+    except Amistad.DoesNotExist:
+        return Response({"detail": "Solicitud no encontrada o ya gestionada."}, status=404)
 
-    def post(self, request, *args, **kwargs):
-        solicitud = get_object_or_404(
-            Amistad, id=kwargs["pk"], a_usuario=request.user, estado="pendiente"
-        )
-        accion = request.data.get("accion")
-        if accion == "aceptar":
-            solicitud.estado = "aceptada"
-            solicitud.save()
-            return Response({"detail": "Solicitud aceptada."})
-        elif accion == "rechazar":
-            solicitud.delete()
-            return Response({"detail": "Solicitud rechazada."})
-        return Response({"detail": "Acción inválida. Usa 'aceptar' o 'rechazar'."}, status=400)
+    if solicitud.estado != "pendiente":
+        return Response({"detail": "La solicitud ya fue aceptada o rechazada."}, status=400)
 
+    accion = request.data.get("accion")
+    if accion == "aceptar":
+        solicitud.estado = "aceptada"
+        solicitud.save()
+        return Response({"detail": "Solicitud aceptada."})
+    elif accion == "rechazar":
+        solicitud.delete()
+        return Response({"detail": "Solicitud rechazada."})
+    
+    return Response({"detail": "Acción inválida. Usa 'aceptar' o 'rechazar'."}, status=400)
 
 class ListaAmigosView(generics.ListAPIView):
     permission_classes = [permissions.IsAuthenticated]
