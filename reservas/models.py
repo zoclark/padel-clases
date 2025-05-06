@@ -381,7 +381,9 @@ class Amistad(models.Model):
 
     def __str__(self):
         return f"{self.de_usuario.username} → {self.a_usuario.username} ({self.estado})"
-    
+
+
+from django.db.models import JSONField  # arriba
 class Notificacion(models.Model):
     usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name="notificaciones")
     titulo = models.CharField(max_length=255)
@@ -389,6 +391,7 @@ class Notificacion(models.Model):
     tipo = models.CharField(max_length=50, blank=True, null=True)  # ej: "amistad"
     leida = models.BooleanField(default=False)
     fecha = models.DateTimeField(auto_now_add=True)
+    extra = JSONField(null=True, blank=True)  # ✅ NUEVO CAMPO
 
     def __str__(self):
         return f"[{self.tipo or 'notificación'}] {self.titulo} → {self.usuario.username}"

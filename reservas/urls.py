@@ -19,7 +19,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from reservas.views_auth import RegistroConVerificacionView, ActivarCuentaView
 from reservas.views import resend_verification_email
 from reservas.views import (
-    solicitudes_recibidas, marcar_notificaciones_leidas, eliminar_foto_perfil, actualizar_foto_perfil, ver_perfil_usuario, buscar_usuarios, listar_bloqueados, desbloquear_usuario, eliminar_amistad, bloquear_usuario, EnviarSolicitudAmistadView, GestionarSolicitudAmistadView, ListaAmigosView
+    marcar_notificacion_leida, solicitudes_recibidas, marcar_notificaciones_leidas, eliminar_foto_perfil, actualizar_foto_perfil, ver_perfil_usuario, buscar_usuarios, listar_bloqueados, desbloquear_usuario, eliminar_amistad, bloquear_usuario, EnviarSolicitudAmistadView, GestionarSolicitudAmistadView, ListaAmigosView
 )
 from reservas.views import (
     listar_notificaciones)
@@ -73,6 +73,7 @@ urlpatterns = [
     # Notificaciones
     path("notificaciones/", listar_notificaciones),
     path("notificaciones/marcar-leidas/", marcar_notificaciones_leidas),
+    path("notificaciones/<int:notificacion_id>/leida/", marcar_notificacion_leida),
     # Importar Excel
     path("pozos/<int:pozo_id>/importar_excel/", importar_participantes_excel, name="importar_participantes_excel"),
 ]

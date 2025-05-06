@@ -678,15 +678,14 @@ class EnviarSolicitudAmistadView(generics.CreateAPIView):
         if Amistad.objects.filter(de_usuario=request.user, a_usuario=receptor).exists():
             return Response({"detail": "Ya has enviado una solicitud."}, status=400)
 
-        Amistad.objects.create(de_usuario=request.user, a_usuario=receptor)
-        
-
+        amistad = Amistad.objects.create(de_usuario=request.user, a_usuario=receptor)
         # Crear notificación persistente
         Notificacion.objects.create(
             usuario=receptor,
             titulo="Nueva solicitud de amistad",
             cuerpo=f"{request.user.username} quiere agregarte como amigo",
-            tipo="amistad"
+            tipo="amistad",
+            extra={"solicitud_id": amistad.id}  # ✅ AÑADIDO
         )
 
         # Enviar notificación push al móvil
@@ -804,16 +803,17 @@ def desbloquear_usuario(request, usuario_id):
 def listar_notificaciones(request):
     notis = request.user.notificaciones.order_by("-fecha")[:50]
     data = [
-        {
-            "id": n.id,
-            "titulo": n.titulo,
-            "cuerpo": n.cuerpo,
-            "tipo": n.tipo,
-            "fecha": n.fecha,
-            "leida": n.leida
-        }
-        for n in notis
-    ]
+    {
+        "id": n.id,
+        "titulo": n.titulo,
+        "cuerpo": n.cuerpo,
+        "tipo": n.tipo,
+        "fecha": n.fecha,
+        "leida": n.leida,
+        "extra": n.extra  # ✅ MOSTRAR CAMPO EXTRA
+    }
+    for n in notis
+]
     return Response(data)
 
 
@@ -1020,3 +1020,15 @@ def solicitudes_recibidas(request):
         for a in solicitudes
     ]
     return Response(data)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def marcar_notificacion_leida(request, notificacion_id):
+    try:
+        noti = Notificacion.objects.get(id=notificacion_id, usuario=request.user)
+        noti.leida = True
+        noti.save()
+        return Response({"mensaje": "Notificación marcada como leída"})
+    except Notificacion.DoesNotExist:
+        return Response({"error": "No se encontró la notificación"}, status=404)
