@@ -151,6 +151,74 @@ def agregar_participante(request):
     return Response(serializer.errors, status=400)
 
 
+
+@api_view(["PUT"])
+@permission_classes([IsAuthenticated])
+def actualizar_participante(request, participante_id):
+    try:
+        participante = ParticipantePozo.objects.get(id=participante_id)
+    except ParticipantePozo.DoesNotExist:
+        return Response({"error":"Participante no encontrado"}, status=404)
+
+    data = request.data.copy()
+    data.pop("pozo", None)  # no permitimos cambiar el pozo
+
+    # normaliza texto e ints
+    for campo in ("nombre","genero","mano_dominante"):
+        if campo in data and isinstance(data[campo], str):
+            data[campo] = data[campo].strip().lower()
+    if "nivel" in data:
+        try:
+            data["nivel"] = int(float(data["nivel"]))
+        except:
+            pass
+    if "posicion" in data:
+        mp = {"reves":"reves","drive":"drive","ambos":"ambos"}
+        data["posicion"] = mp.get(data["posicion"].strip().lower(), data["posicion"])
+    if "pista_fija" in data:
+        try:
+            pf = int(data["pista_fija"])
+            data["pista_fija"] = pf if pf>0 else None
+        except:
+            data["pista_fija"] = None
+
+    serializer = ParticipantePozoSerializer(participante, data=data, partial=True)
+    if serializer.is_valid():
+        participante = serializer.save()
+
+        # ahora sí seteamos las relaciones M2M
+        if "juega_con" in data:
+            participante.juega_con.set(data["juega_con"])
+        if "juega_contra" in data:
+            participante.juega_contra.set(data["juega_contra"])
+        if "no_juega_con" in data:
+            participante.no_juega_con.set(data["no_juega_con"])
+        if "no_juega_contra" in data:
+            participante.no_juega_contra.set(data["no_juega_contra"])
+
+        return Response(serializer.data)
+
+    return Response(serializer.errors, status=400)
+
+
+@api_view(["DELETE"])
+@permission_classes([IsAuthenticated])
+def eliminar_participante(request, participante_id):
+    try:
+        participante = ParticipantePozo.objects.get(id=participante_id)
+    except ParticipantePozo.DoesNotExist:
+        return Response({"error": "Participante no encontrado"}, status=404)
+
+    # Protección contra borrado del organizador apuntado a sí mismo
+    if participante.es_organizador:
+        return Response({"error": "No se puede eliminar al organizador inscrito."}, status=403)
+
+    participante.delete()
+    return Response({"mensaje": "Participante eliminado"}, status=204)
+
+
+
+
 @api_view(["GET", "PUT", "PATCH"])
 @permission_classes([IsAuthenticated])
 def detalle_pozo(request, pozo_id):
