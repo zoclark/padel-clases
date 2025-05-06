@@ -77,7 +77,7 @@ def resend_verification_email(request):
         return Response({"detail": "Usuario no encontrado."}, status=404)
 
 
-from .models import PushToken, Notificacion
+from reservas.models import PushToken, Notificacion
 
 import requests
 
