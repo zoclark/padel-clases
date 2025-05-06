@@ -55,6 +55,7 @@ urlpatterns = [
     path("pozos/participantes/<int:participante_id>/", actualizar_participante, name="actualizar_participante"),
     path("pozos/participantes/<int:participante_id>/eliminar/", eliminar_participante, name="eliminar_participante"),
 
+
     # Afinidades
     path("afinidades/<int:usuario_id>/", afinidades_usuario),
     path("pozos/afinidades/crear/", crear_afinidad),
