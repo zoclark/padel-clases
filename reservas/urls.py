@@ -19,7 +19,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from reservas.views_auth import RegistroConVerificacionView, ActivarCuentaView
 from reservas.views import resend_verification_email
 from reservas.views import (
-    lista_amigos, eliminar_notificacion, guardar_token_push, marcar_notificacion_leida, solicitudes_recibidas, marcar_notificaciones_leidas, eliminar_foto_perfil, actualizar_foto_perfil, ver_perfil_usuario, buscar_usuarios, listar_bloqueados, desbloquear_usuario, eliminar_amistad, bloquear_usuario, EnviarSolicitudAmistadView, GestionarSolicitudAmistadView, ListaAmigosView
+    lista_amigos, eliminar_notificacion, guardar_token_push, marcar_notificacion_leida, solicitudes_recibidas, marcar_notificaciones_leidas, eliminar_foto_perfil, actualizar_foto_perfil, ver_perfil_usuario, buscar_usuarios, listar_bloqueados, desbloquear_usuario, eliminar_amistad, bloquear_usuario, EnviarSolicitudAmistadView, GestionarSolicitudAmistadView
 )
 from reservas.views import (
     listar_notificaciones)
