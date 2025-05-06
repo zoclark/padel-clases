@@ -54,29 +54,6 @@ def eliminar_notificacion(request, pk):
     return Response({"detail": "Notificación eliminada"})
 
 
-@api_view(["POST"])
-def resend_verification_email(request):
-    email = request.data.get("email")
-    if not email:
-        return Response({"detail": "Email requerido"}, status=400)
-
-    try:
-        user = Usuario.objects.get(email=email)
-        if user.is_active:
-            return Response({"detail": "El usuario ya está activado."}, status=400)
-
-        if user.last_verification_sent and timezone.now() - user.last_verification_sent < timedelta(minutes=5):
-            return Response({"detail": "Ya se ha enviado un correo recientemente. Inténtalo en unos minutos."}, status=429)
-
-        send_verification_email(user)
-        user.last_verification_sent = timezone.now()
-        user.save(update_fields=["last_verification_sent"])
-        return Response({"detail": "Correo de verificación reenviado."})
-
-    except Usuario.DoesNotExist:
-        return Response({"detail": "Usuario no encontrado."}, status=404)
-
-
 from reservas.models import PushToken, Notificacion
 
 import requests

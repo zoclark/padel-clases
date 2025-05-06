@@ -2,13 +2,16 @@ from django.urls import path
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 # Vistas de autenticación
-from reservas.views.auth_views import resend_verification_email, RegistroConVerificacionView, ActivarCuentaView
-
+from reservas.views.auth_views import (
+    resend_verification_email, RegistroConVerificacionView, ActivarCuentaView,
+    estado_verificacion, completar_onboarding, onboarding_perfil_alumno, onboarding_perfil_alumno,
+)
 # Vistas de usuario
 from reservas.views.usuario_views import (
-    perfil_usuario, completar_onboarding, guardar_push_token,
+    perfil_usuario, guardar_push_token,
     actualizar_foto_perfil, eliminar_foto_perfil,
-    buscar_usuarios, ver_perfil_usuario
+    buscar_usuarios, ver_perfil_usuario,
+    historial_evolucion_stats, guardar_evolucion_stats
 )
 
 # Vistas de entrenamiento
@@ -40,8 +43,6 @@ from reservas.views.notificacion_views import (
     marcar_notificacion_leida, eliminar_notificacion
 )
 
-# Vistas del frontend
-from reservas.views.frontend import estado_verificacion
 
 urlpatterns = [
     # JWT
@@ -60,6 +61,10 @@ urlpatterns = [
     path("push-token/", guardar_push_token),
     path("usuario/foto/", actualizar_foto_perfil),
     path("perfil/foto/eliminar/", eliminar_foto_perfil, name="eliminar_foto_perfil"),
+
+    #Stats
+    path("perfil/evolucion-stats/", historial_evolucion_stats, name="historial_evolucion_stats"),
+    path("perfil/evolucion-stats/guardar/", guardar_evolucion_stats, name="guardar_evolucion_stats"),
 
     # Entrenamientos
     path("historial/", historial_entrenamientos),
