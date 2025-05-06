@@ -215,8 +215,7 @@ class AmistadSerializer(serializers.ModelSerializer):
 # notificaciones/serializers.py
 from rest_framework import serializers
 from .models import Notificacion
-from amistad.models import Amistad  # importa tu modelo de amistad si está en otra app
-
+from .models import Amistad
 class NotificacionSerializer(serializers.ModelSerializer):
     extra = serializers.SerializerMethodField()
 
