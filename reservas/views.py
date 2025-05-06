@@ -1050,7 +1050,7 @@ def guardar_token_push(request):
     return Response({'success': True})
 
 
-@api_view(['POST'])
+@api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
 def eliminar_notificacion(request, pk):
     noti = get_object_or_404(Notificacion, pk=pk, usuario=request.user)
