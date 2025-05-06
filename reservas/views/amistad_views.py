@@ -152,3 +152,18 @@ def desbloquear_usuario(request, usuario_id):
     except Amistad.DoesNotExist:
         return Response({"detail": "No tienes bloqueado a este usuario."}, status=404)
 
+# En amistad_views.py (añadir esta vista)
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def solicitudes_recibidas(request):
+    solicitudes = Amistad.objects.filter(a_usuario=request.user, estado="pendiente")
+    data = [
+    {
+        "id": a.id,
+        "de_usuario_id": a.de_usuario.id,
+        "username": a.de_usuario.username,
+        "foto": a.de_usuario.foto_perfil.url if a.de_usuario.foto_perfil else None,
+    }
+        for a in solicitudes
+    ]
+    return Response(data)

@@ -114,24 +114,6 @@ class ActivarCuentaView(APIView):
 
         return Response({"detail": "Token inválido o expirado."}, status=400)
 
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
-def perfil_usuario(request):
-    usuario = request.user
-    perfil, _ = AlumnoPerfil.objects.get_or_create(usuario=usuario)
-    data = {
-        "id": usuario.id,
-        "username": usuario.username,
-        "email": usuario.email,
-        "first_name": usuario.first_name,
-        "last_name": usuario.last_name,
-        "rol": usuario.rol,
-        "genero": usuario.genero,
-        "onboarding_completado": usuario.onboarding_completado
-    }
-    data.update(AlumnoPerfilSerializer(perfil).data)
-    return Response(data)
-
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def onboarding_perfil_alumno(request):
@@ -165,46 +147,6 @@ def completar_onboarding(request):
     usuario.save()
     return Response({"onboarding_completado": True})
 
-@api_view(["POST"])
-@permission_classes([IsAuthenticated])
-@parser_classes([MultiPartParser])
-def actualizar_foto_perfil(request):
-    usuario = request.user
-    foto = request.FILES.get("foto")
-
-    if not foto:
-        return Response({"error": "No se ha enviado ninguna imagen."}, status=400)
-    if foto.size > 2 * 1024 * 1024:
-        return Response({"error": "La imagen no puede superar los 2MB."}, status=400)
-    if foto.content_type not in ["image/jpeg", "image/png", "image/webp"]:
-        return Response({"error": "Formato de imagen no permitido."}, status=400)
-
-    usuario.foto_perfil = foto
-    usuario.save()
-
-    return Response({
-        "mensaje": "Foto de perfil actualizada correctamente.",
-        "foto_url": request.build_absolute_uri(usuario.foto_perfil.url)
-    }, status=200)
-
-@api_view(["DELETE"])
-@permission_classes([IsAuthenticated])
-def eliminar_foto_perfil(request):
-    usuario = request.user
-    if not usuario.foto_perfil:
-        return Response({"mensaje": "No hay ninguna foto de perfil que eliminar."}, status=200)
-
-    ruta_archivo = usuario.foto_perfil.path
-    usuario.foto_perfil.delete(save=False)
-    usuario.save()
-
-    try:
-        if os.path.exists(ruta_archivo):
-            os.remove(ruta_archivo)
-    except Exception as e:
-        print(f"⚠️ Error al eliminar el archivo: {e}")
-
-    return Response({"mensaje": "Foto de perfil eliminada correctamente."}, status=200)
 
 @api_view(["POST"])
 def resend_verification_email(request):

@@ -31,28 +31,3 @@ def historial_entrenamientos(request):
     serializer = TrainingSessionSerializer(sesiones, many=True)
     return Response(serializer.data)
 
-
-@api_view(["GET"])
-@permission_classes([IsAuthenticated])
-def historial_evolucion_stats(request):
-    perfil = AlumnoPerfil.objects.get(usuario=request.user)
-    evoluciones = perfil.evoluciones.order_by("-fecha")
-    serializer = AlumnoPerfilEvolucionSerializer(evoluciones, many=True)
-    return Response(serializer.data)
-
-
-@api_view(["POST"])
-@permission_classes([IsAuthenticated])
-def guardar_evolucion_stats(request):
-    try:
-        perfil = AlumnoPerfil.objects.get(usuario=request.user)
-    except AlumnoPerfil.DoesNotExist:
-        return Response({"error": "Perfil de alumno no encontrado"}, status=404)
-
-    stats = request.data.get("stats")
-    if not stats:
-        stats = perfil.to_stats_dict()
-
-    evolucion = AlumnoPerfilEvolucion.objects.create(perfil=perfil, stats=stats)
-    serializer = AlumnoPerfilEvolucionSerializer(evolucion)
-    return Response(serializer.data, status=201)

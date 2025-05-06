@@ -61,38 +61,6 @@ def guardar_evolucion_stats(request):
     return Response(serializer.data, status=201)
 
 
-@api_view(["POST"])
-@permission_classes([IsAuthenticated])
-def onboarding_perfil_alumno(request):
-    nivel = float(request.data.get("nivel", 0))
-    stats = {stat: int(request.data.get(stat, 0)) for stat in get_stats_list()}
-    alertas = validate_stats(nivel, stats)
-    if alertas:
-        return Response({"alertas": alertas}, status=400)
-
-    perfil, _ = AlumnoPerfil.objects.get_or_create(usuario=request.user)
-    for stat, valor in stats.items():
-        setattr(perfil, stat, valor)
-    perfil.nivel = nivel
-    perfil.save()
-
-    AlumnoPerfilEvolucion.objects.create(perfil=perfil, stats=stats)
-
-    serializer = AlumnoPerfilSerializer(perfil)
-    return Response({
-        "mensaje": "Perfil creado/actualizado correctamente",
-        "perfil": serializer.data,
-        "pool_usado": sum(stats.values()),
-        "pool_max": get_pool_for_level(nivel)
-    }, status=201)
-
-
-@api_view(["POST"])
-@permission_classes([IsAuthenticated])
-def completar_onboarding(request):
-    request.user.onboarding_completado = True
-    request.user.save()
-    return Response({"onboarding_completado": True})
 
 
 @api_view(["PUT"])
