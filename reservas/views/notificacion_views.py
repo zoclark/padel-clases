@@ -75,3 +75,46 @@ def resend_verification_email(request):
 
     except Usuario.DoesNotExist:
         return Response({"detail": "Usuario no encontrado."}, status=404)
+
+
+from .models import PushToken, Notificacion
+
+import requests
+
+EXPO_URL = "https://exp.host/--/api/v2/push/send"
+
+def enviar_notificacion_push(titulo, cuerpo, usuarios=None, tipo=None):
+    qs = PushToken.objects.filter(user__in=usuarios) if usuarios else PushToken.objects.all()
+    tokens = qs.values_list("token", flat=True)
+
+    mensajes = [{
+        "to": token,
+        "sound": "default",
+        "title": titulo,
+        "body": cuerpo
+    } for token in tokens]
+
+    headers = {"Content-Type": "application/json", "Accept": "application/json"}
+    for mensaje in mensajes:
+        try:
+            requests.post(EXPO_URL, json=mensaje, headers=headers)
+        except Exception as e:
+            print(f"❌ Error enviando push: {e}")
+
+    usuarios_target = usuarios if usuarios else [t.user for t in qs]
+    for user in usuarios_target:
+        # ❗ Evita duplicados recientes con mismo tipo + título + cuerpo
+        if Notificacion.objects.filter(
+            usuario=user,
+            titulo=titulo,
+            cuerpo=cuerpo,
+            tipo=tipo
+        ).exists():
+            continue  # ya existe la notificación
+
+        Notificacion.objects.create(
+            usuario=user,
+            titulo=titulo,
+            cuerpo=cuerpo,
+            tipo=tipo
+        )
