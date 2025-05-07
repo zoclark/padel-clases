@@ -29,7 +29,7 @@ function AppRoutes() {
       <Route path="/" element={<Landing />} />
       <Route path="/registro" element={<Registro />} />
       <Route path="/entrenamiento" element={<Entrenamiento />} />
-
+      <Route path="/privacidad" element={<Privacidad />} />
       {/* Enlace de verificación web */}
       <Route path="/activar-cuenta/:uid/:token" element={<ActivarCuenta />} />
 
