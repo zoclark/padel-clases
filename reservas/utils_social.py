@@ -11,3 +11,5 @@ def puede_ver_perfil(solicitante, objetivo):
     if not objetivo.perfil_privado:
         return True
     return son_amigos(solicitante, objetivo)
+
+
