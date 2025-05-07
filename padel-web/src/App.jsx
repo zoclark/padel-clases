@@ -9,7 +9,7 @@ import PanelProfesor from "./pages/PanelProfesor";
 import ProtectedRoute from "./components/ProtectedRoute";
 import LoginRouteWrapper from "./components/LoginRouteWrapper";
 import ActivarCuenta from "./pages/ActivarCuenta";
-
+import Privacidad from "./pages/Privacidad"; // ✅ <-- ESTA LÍNEA FALTABA
 import { AuthProvider, AuthContext } from "@/contexts/AuthContext";
 import { useContext } from "react";
 
