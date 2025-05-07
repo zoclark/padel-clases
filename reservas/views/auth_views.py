@@ -250,3 +250,13 @@ def confirmar_nueva_password(request):
     user.set_password(nueva_password)
     user.save()
     return Response({"detail": "Contraseña actualizada correctamente."})
+
+
+from dj_rest_auth.registration.views import SocialLoginView
+from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
+from allauth.socialaccount.providers.oauth2.client import OAuth2Client
+
+class GoogleLoginView(SocialLoginView):
+    adapter_class = GoogleOAuth2Adapter
+    client_class = OAuth2Client
+    callback_url = "https://auth.expo.io/@your_expo_username/metrikpadel-app-native"  # adaptarlo a tu app

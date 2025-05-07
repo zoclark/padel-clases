@@ -9,9 +9,14 @@ class CustomTokenView(DefaultTokenView):
     serializer_class = CustomTokenObtainPairSerializer
 
 # Vistas de autenticación
-from reservas.views.auth_views import (solicitar_reset_password, verificar_token_reset, confirmar_nueva_password,
-    resend_verification_email, RegistroConVerificacionView, ActivarCuentaView,
-    estado_verificacion, completar_onboarding, onboarding_perfil_alumno, onboarding_perfil_alumno,
+from reservas.views.auth_views import (solicitar_reset_password, 
+    verificar_token_reset, confirmar_nueva_password,
+    resend_verification_email, 
+    RegistroConVerificacionView, ActivarCuentaView,
+    estado_verificacion, completar_onboarding, 
+    onboarding_perfil_alumno, 
+    onboarding_perfil_alumno,
+    GoogleLoginView
 )
 # Vistas de usuario
 from reservas.views.usuario_views import (
@@ -60,7 +65,7 @@ urlpatterns = [
     path('auth/', include('dj_rest_auth.urls')),
     path('auth/registration/', include('dj_rest_auth.registration.urls')),
     path('auth/social/', include('allauth.socialaccount.urls')),  # para el login social
-
+    path('auth/google/', GoogleLoginView.as_view(), name='google_login'),
     # Registro y Autenticación
     path("registro/", RegistroConVerificacionView.as_view(), name="registro_verificado"),
     path("activar/<uidb64>/<token>/", ActivarCuentaView.as_view(), name="activar_cuenta"),
