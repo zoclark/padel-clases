@@ -21,7 +21,7 @@ def send_verification_email(user, origen="web"):
         "Gracias por registrarte en Metrik Padel.\n\n"
         "Para activar tu cuenta:\n"
         f"- App: metrikpadel://activar-cuenta/{uid}/{token}\n"
-        f"- Web: https://www.metrikpadel.com/activar-cuenta/{uid}/{token}\n\n"
+        f"- Web: https://www.metrikpadel.com/#/activar-cuenta/{uid}/{token}\n\n"
         "Si no te registraste, puedes ignorar este correo.\n\n"
         "¡Nos vemos en la pista! 🎾"
     )
@@ -52,7 +52,7 @@ def send_reset_email(user, origen="web"):
         "Has solicitado restablecer tu contraseña en Metrik Padel.\n\n"
         "Puedes hacerlo con los siguientes enlaces:\n"
         f"- App: metrikpadel://reset-password/{uid}/{token}\n"
-        f"- Web: https://www.metrikpadel.com/reset-password/{uid}/{token}\n\n"
+        f"- Web: https://www.metrikpadel.com/#/reset-password/{uid}/{token}\n\n"
         "Si no lo solicitaste, puedes ignorar este mensaje.\n\n"
         "¡Nos vemos en la pista! 🎾"
     )
