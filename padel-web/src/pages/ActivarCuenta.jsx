@@ -4,7 +4,6 @@ import { useParams, useNavigate } from "react-router-dom";
 import api from "@/api/axiosConfig";
 import toast from "react-hot-toast";
 import Header from "@/components/Header";
-import Footer from "@/components/Footer";
 import { motion } from "framer-motion";
 
 export default function ActivarCuenta() {
@@ -49,7 +48,18 @@ export default function ActivarCuenta() {
         {status === "activada" && <p>Redirigiendo al login…</p>}
         {status === "error" && <p>Error al activar la cuenta.</p>}
       </motion.div>
-      <Footer />
+      <footer className="bg-blue-700 text-white text-center py-6">
+        <p className="text-sm">
+          &copy; {new Date().getFullYear()} MetrikPadel. Todos los derechos reservados.
+          <br />
+          <a
+            href="/privacidad"
+            className="underline text-white/80 hover:text-white transition"
+          >
+            Política de Privacidad
+          </a>
+        </p>
+      </footer>
     </div>
   );
 }
