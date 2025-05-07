@@ -37,7 +37,11 @@ class Usuario(AbstractUser):
             'unique': _('Ya existe una cuenta con este e-mail.'),
         }
     )
-    last_verification_sent = models.DateTimeField(null=True, blank=True)
+
+    # Nuevos campos para control de emails
+    last_verification_sent = models.DateTimeField(null=True, blank=True, help_text="Última vez que se envió un email de verificación.")
+    last_password_reset_sent = models.DateTimeField(null=True, blank=True, help_text="Última vez que se envió un email de recuperación de contraseña.")
+
     perfil_privado = models.BooleanField(default=False, help_text="Si está activado, solo tus amigos pueden ver tu perfil.")
     rol = models.CharField(max_length=20, choices=ROL_CHOICES, default="alumno")
     genero = models.CharField(max_length=10, choices=GENERO_CHOICES, default="hombre")
@@ -66,8 +70,6 @@ class Usuario(AbstractUser):
     @property
     def is_verified(self):
         return self.is_active
-
-
 class PushToken(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     token = models.CharField(max_length=200)

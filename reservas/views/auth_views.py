@@ -183,30 +183,38 @@ def estado_verificacion(request):
 
 
 reset_token_generator = PasswordResetTokenGenerator()
+from ..utils_email import send_verification_email, send_reset_email
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def solicitar_reset_password(request):
     email = request.data.get("email", "").strip().lower()
+    origen = request.data.get("origen", "web")
+
+    if not email:
+        return Response({"detail": "Email requerido"}, status=400)
+
     user = Usuario.objects.filter(email__iexact=email).first()
     if not user:
         return Response({"detail": "No se ha encontrado un usuario con ese email."}, status=404)
 
-    uid = urlsafe_base64_encode(force_bytes(user.pk))
-    token = reset_token_generator.make_token(user)
+    # Opcional: limitar la frecuencia del envío (como verificación)
+    if user.last_verification_sent and timezone.now() - user.last_verification_sent < timedelta(minutes=5):
+        return Response({"detail": "Ya se ha enviado un correo recientemente. Inténtalo en unos minutos."}, status=429)
 
-    origen = request.data.get("origen", "web")
-    base_url = "https://metrikpadel.com" if origen == "web" else "metrikpadel://"
-    enlace = f"{base_url}reset-password/{uid}/{token}/"
-    send_mail(
-        "Restablecer contraseña",
-        f"Haz clic aquí para restablecer tu contraseña:\n\n{enlace}",
-        settings.DEFAULT_FROM_EMAIL,
-        [user.email],
-        fail_silently=False,
-    )
-
-    return Response({"detail": "Se ha enviado un correo para restablecer la contraseña."})
+    try:
+        uid, token = send_reset_email(user, origen)
+        user.last_verification_sent = timezone.now()
+        user.save(update_fields=["last_verification_sent"])
+        return Response({
+            "detail": "Se ha enviado un correo para restablecer la contraseña.",
+            "email": user.email,
+            "uid": uid,
+            "token": token
+        })
+    except Exception as e:
+        print("❌ Error enviando email de reset:", str(e))
+        return Response({"detail": f"Error al enviar el correo: {str(e)}"}, status=500)
 
 @api_view(["GET"])
 @permission_classes([AllowAny])
