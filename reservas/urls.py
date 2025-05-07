@@ -60,9 +60,9 @@ urlpatterns = [
     path("activar/<uidb64>/<token>/", ActivarCuentaView.as_view(), name="activar_cuenta"),
     path("resend-verification-email/", resend_verification_email),
     path("estado-verificacion/", estado_verificacion, name="estado-verificacion"),
-    path("password-reset/", solicitar_reset_password, name="solicitar_reset_password"),
-    path("password-reset/<uidb64>/<token>/", verificar_token_reset, name="verificar_token_reset"),
-    path("password-reset/confirm/", confirmar_nueva_password, name="confirmar_nueva_password"),
+    path("solicitar-reset-password/", solicitar_reset_password, name="solicitar_reset_password"),
+    path("solicitar-reset-password/<uidb64>/<token>/", verificar_token_reset, name="verificar_token_reset"),
+    path("solicitar-reset-password/confirm/", confirmar_nueva_password, name="confirmar_nueva_password"),
 
     # Perfil de usuario
     path("perfil/", perfil_usuario),
