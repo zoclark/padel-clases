@@ -12,6 +12,7 @@ import ActivarCuenta from "./pages/ActivarCuenta";
 import Privacidad from "./pages/Privacidad"; // ✅ <-- ESTA LÍNEA FALTABA
 import { AuthProvider, AuthContext } from "@/contexts/AuthContext";
 import { useContext } from "react";
+import ResetPassword from "./pages/ResetPassword"; // ⬅️ también asegúrate de importar el componente
 
 import { Toaster } from "react-hot-toast";
 import CookieConsent from "react-cookie-consent";
@@ -32,7 +33,8 @@ function AppRoutes() {
       <Route path="/privacidad" element={<Privacidad />} />
       {/* Enlace de verificación web */}
       <Route path="/activar-cuenta/:uid/:token" element={<ActivarCuenta />} />
-
+      {/* Enlace de recuperación de contraseña */}
+      <Route path="/reset-password/:uid/:token" element={<ResetPassword />} />
       {/* 🔒 ruta login protegida con el wrapper robusto */}
       <Route path="/login" element={<LoginRouteWrapper />} />
 
