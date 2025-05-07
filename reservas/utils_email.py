@@ -61,8 +61,7 @@ def send_reset_email(user, origen="web"):
         "user": user,
         "uid": uid,
         "token": token,
-        "enlace_app": f"metrikpadel://reset-password/{uid}/{token}",
-        "enlace_web": f"https://www.metrikpadel.com/reset-password/{uid}/{token}",
+    
     })
 
     send_mail(

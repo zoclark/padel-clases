@@ -14,8 +14,7 @@ from datetime import timedelta
 import requests
 import os
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
-from django.core.mail import send_mail
-from django.urls import reverse
+
 from ..models import Usuario, AlumnoPerfil, AlumnoPerfilEvolucion, PushToken
 from ..serializers import AlumnoPerfilSerializer, AlumnoPerfilEvolucionSerializer
 from ..utils_stats import validate_stats, get_level_ranges, get_pool_for_level, get_stats_list
