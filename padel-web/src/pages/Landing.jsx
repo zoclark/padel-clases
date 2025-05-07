@@ -255,12 +255,21 @@ export default function Landing() {
         </div>
 
         <motion.footer
-          animate={{ paddingTop: footerPadding, paddingBottom: footerPadding }}
-          transition={{ duration: 0.5 }}
-          className="bg-blue-700 text-white text-center"
-        >
-          <p>&copy; {new Date().getFullYear()} MetrikPadel. Todos los derechos reservados.</p>
-        </motion.footer>
+  animate={{ paddingTop: footerPadding, paddingBottom: footerPadding }}
+  transition={{ duration: 0.5 }}
+  className="bg-blue-700 text-white text-center"
+>
+  <p className="text-sm space-y-1">
+    &copy; {new Date().getFullYear()} MetrikPadel. Todos los derechos reservados.
+    <br />
+    <a
+      href="/privacidad"
+      className="underline text-white/80 hover:text-white transition"
+    >
+      Política de Privacidad
+    </a>
+  </p>
+</motion.footer>
       </div>
     </>
   );
