@@ -62,12 +62,23 @@ INSTALLED_APPS = [
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
+    "django.contrib.sites",
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'corsheaders',
     'rest_framework',
     'reservas',
     'rest_framework_simplejwt.token_blacklist',
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
+    "allauth.socialaccount.providers.google",
+    "allauth.socialaccount.providers.facebook",
+    "allauth.socialaccount.providers.apple",  # si decides usar Apple también
+    "dj_rest_auth",
+    "dj_rest_auth.registration",
+    'rest_framework.authtoken',
+
     ]
 
 MEDIA_URL = '/media/'
@@ -83,6 +94,25 @@ SIMPLE_JWT = {
 }
 
 
+SITE_ID = 1  # Necesario para django.contrib.sites
+
+ACCOUNT_EMAIL_VERIFICATION = "none"  # Lo gestiona ya tu sistema propio
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_AUTHENTICATION_METHOD = "email"
+ACCOUNT_USERNAME_REQUIRED = False
+
+# === LOGIN SOCIAL CONFIG ===
+
+SOCIALACCOUNT_PROVIDERS = {
+    "google": {
+        "APP": {
+            "client_id": os.getenv("SOCIAL_AUTH_GOOGLE_CLIENT_ID", ""),
+            "key": "",
+        },
+    }
+   
+}
+
 # === MIDDLEWARE ===
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -94,7 +124,8 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-]
+    "allauth.account.middleware.AccountMiddleware",
+    ]
 
 # === JWT y API ===
 REST_FRAMEWORK = {

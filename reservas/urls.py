@@ -1,8 +1,9 @@
-from django.urls import path
+from django.urls import path, include
 from rest_framework_simplejwt.views import TokenRefreshView
 from rest_framework_simplejwt.views import TokenObtainPairView as DefaultTokenView
 from reservas.serializers import CustomTokenObtainPairSerializer
-
+from dj_rest_auth.registration.views import SocialAccountListView
+from allauth.socialaccount.providers.google import views as google_views
 
 class CustomTokenView(DefaultTokenView):
     serializer_class = CustomTokenObtainPairSerializer
@@ -54,6 +55,11 @@ urlpatterns = [
     # JWT
     path("token/", CustomTokenView.as_view(), name="token_obtain_pair"),
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+
+    # Login social
+    path('auth/', include('dj_rest_auth.urls')),
+    path('auth/registration/', include('dj_rest_auth.registration.urls')),
+    path('auth/social/', include('allauth.socialaccount.urls')),  # para el login social
 
     # Registro y Autenticación
     path("registro/", RegistroConVerificacionView.as_view(), name="registro_verificado"),

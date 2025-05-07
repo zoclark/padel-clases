@@ -1,8 +1,22 @@
 import random
+from datetime import timedelta, date
+
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+
 from .models import Usuario, AlumnoPerfil, TrainingSession
-from datetime import timedelta, date
+
+# 🔐 Señales para login social (activar cuenta automáticamente)
+from allauth.account.signals import user_logged_in
+
+@receiver(user_logged_in)
+def marcar_usuario_como_verificado(sender, request, user, **kwargs):
+    """
+    Marca el usuario como verificado (is_active=True) si ha iniciado sesión con Google u otro método social.
+    """
+    if not user.is_active:
+        user.is_active = True
+        user.save()
 
 
 @receiver(post_save, sender=Usuario)
