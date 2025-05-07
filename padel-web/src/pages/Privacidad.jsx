@@ -34,7 +34,7 @@ export default function Privacidad() {
           <h2 className="text-2xl font-semibold text-blue-600">8. Contacto</h2>
           <p>Si tienes dudas sobre esta política o deseas ejercer tus derechos, contáctanos a:</p>
           <p>
-            📧 <a href="mailto:contacto@metrikpadel.com" className="text-blue-600 underline">contacto@metrikpadel.com</a><br />
+            📧 <a href="mailto:info@metrikpadel.com" className="text-blue-600 underline">contacto@metrikpadel.com</a><br />
             🌐 <a href="https://metrikpadel.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">https://metrikpadel.com</a>
           </p>
         </section>

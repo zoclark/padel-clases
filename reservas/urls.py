@@ -1,8 +1,14 @@
 from django.urls import path
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework_simplejwt.views import TokenRefreshView
+from rest_framework_simplejwt.views import TokenObtainPairView as DefaultTokenView
+from reservas.serializers import CustomTokenObtainPairSerializer
+
+
+class CustomTokenView(DefaultTokenView):
+    serializer_class = CustomTokenObtainPairSerializer
 
 # Vistas de autenticación
-from reservas.views.auth_views import (
+from reservas.views.auth_views import (solicitar_reset_password, verificar_token_reset, confirmar_nueva_password,
     resend_verification_email, RegistroConVerificacionView, ActivarCuentaView,
     estado_verificacion, completar_onboarding, onboarding_perfil_alumno, onboarding_perfil_alumno,
 )
@@ -46,7 +52,7 @@ from reservas.views.notificacion_views import (
 
 urlpatterns = [
     # JWT
-    path("token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
+    path("token/", CustomTokenView.as_view(), name="token_obtain_pair"),
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
 
     # Registro y Autenticación
@@ -54,6 +60,9 @@ urlpatterns = [
     path("activar/<uidb64>/<token>/", ActivarCuentaView.as_view(), name="activar_cuenta"),
     path("resend-verification-email/", resend_verification_email),
     path("estado-verificacion/", estado_verificacion, name="estado-verificacion"),
+    path("password-reset/", solicitar_reset_password, name="solicitar_reset_password"),
+    path("password-reset/<uidb64>/<token>/", verificar_token_reset, name="verificar_token_reset"),
+    path("password-reset/confirm/", confirmar_nueva_password, name="confirmar_nueva_password"),
 
     # Perfil de usuario
     path("perfil/", perfil_usuario),

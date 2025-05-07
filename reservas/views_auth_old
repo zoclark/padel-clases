@@ -15,15 +15,16 @@ EXPO_PUSH_URL = "https://exp.host/--/api/v2/push/send"
 class RegistroConVerificacionView(APIView):
     def post(self, request):
         data = request.data
-        username = data.get("username")
-        email = data.get("email")
+        username = data.get("username", "").strip().lower()
+        email = data.get("email", "").strip().lower()
         password = data.get("password")
         origen = data.get("origen", "web")
 
-        if Usuario.objects.filter(username=username).exists():
-            return Response({"detail": "El usuario ya existe."}, status=400)
-        if Usuario.objects.filter(email=email).exists():
-            return Response({"detail": "El email ya está registrado."}, status=400)
+        if Usuario.objects.filter(username__iexact=username).exists():
+    return Response({"detail": "El usuario ya existe."}, status=400)
+
+if Usuario.objects.filter(email__iexact=email).exists():
+    return Response({"detail": "El email ya está registrado."}, status=400)
 
         usuario = Usuario.objects.create_user(
             username=username,

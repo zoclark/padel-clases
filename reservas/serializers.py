@@ -233,3 +233,37 @@ class NotificacionSerializer(serializers.ModelSerializer):
             if amistad:
                 return {'solicitud_id': amistad.id}
         return {}
+    
+
+ # al final de serializers.py
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from django.contrib.auth import authenticate
+from rest_framework import serializers
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    def validate(self, attrs):
+        login_input = attrs.get("username") or ""
+        password = attrs.get("password")
+
+        login_input = login_input.strip().lower()
+
+        # Buscar por username o email (insensible a mayúsculas)
+        from .models import Usuario
+        user = Usuario.objects.filter(username__iexact=login_input).first() or \
+               Usuario.objects.filter(email__iexact=login_input).first()
+
+        if user is None:
+            raise serializers.ValidationError({"detail": "No se encontró ningún usuario con ese nombre o email."})
+
+        user = authenticate(username=user.username, password=password)
+
+        if user is None:
+            raise serializers.ValidationError({"detail": "Contraseña incorrecta o cuenta inactiva."})
+
+        # Generar el token
+        data = super().validate({"username": user.username, "password": password})
+        data["usuario_id"] = user.id
+        data["username"] = user.username
+        data["email"] = user.email
+        data["rol"] = user.rol
+        return data   

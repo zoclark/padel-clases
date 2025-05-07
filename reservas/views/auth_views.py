@@ -13,7 +13,9 @@ from django.shortcuts import get_object_or_404
 from datetime import timedelta
 import requests
 import os
-
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.core.mail import send_mail
+from django.urls import reverse
 from ..models import Usuario, AlumnoPerfil, AlumnoPerfilEvolucion, PushToken
 from ..serializers import AlumnoPerfilSerializer, AlumnoPerfilEvolucionSerializer
 from ..utils_stats import validate_stats, get_level_ranges, get_pool_for_level, get_stats_list
@@ -178,3 +180,66 @@ def estado_verificacion(request):
 
     user = Usuario.objects.filter(email__iexact=email.strip().lower()).first()
     return Response({"is_verified": bool(user and user.is_active)})
+
+
+reset_token_generator = PasswordResetTokenGenerator()
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def solicitar_reset_password(request):
+    email = request.data.get("email", "").strip().lower()
+    user = Usuario.objects.filter(email__iexact=email).first()
+    if not user:
+        return Response({"detail": "No se ha encontrado un usuario con ese email."}, status=404)
+
+    uid = urlsafe_base64_encode(force_bytes(user.pk))
+    token = reset_token_generator.make_token(user)
+
+    origen = request.data.get("origen", "web")
+    base_url = "https://metrikpadel.com" if origen == "web" else "metrikpadel://"
+    enlace = f"{base_url}reset-password/{uid}/{token}/"
+    send_mail(
+        "Restablecer contraseña",
+        f"Haz clic aquí para restablecer tu contraseña:\n\n{enlace}",
+        settings.DEFAULT_FROM_EMAIL,
+        [user.email],
+        fail_silently=False,
+    )
+
+    return Response({"detail": "Se ha enviado un correo para restablecer la contraseña."})
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def verificar_token_reset(request, uidb64, token):
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = Usuario.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, Usuario.DoesNotExist):
+        return Response({"detail": "Token inválido."}, status=400)
+
+    if reset_token_generator.check_token(user, token):
+        return Response({"valid": True})
+    return Response({"valid": False}, status=400)
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def confirmar_nueva_password(request):
+    uidb64 = request.data.get("uid")
+    token = request.data.get("token")
+    nueva_password = request.data.get("password")
+
+    if not all([uidb64, token, nueva_password]):
+        return Response({"detail": "Faltan datos"}, status=400)
+
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = Usuario.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, Usuario.DoesNotExist):
+        return Response({"detail": "Token inválido."}, status=400)
+
+    if not reset_token_generator.check_token(user, token):
+        return Response({"detail": "Token inválido o expirado."}, status=400)
+
+    user.set_password(nueva_password)
+    user.save()
+    return Response({"detail": "Contraseña actualizada correctamente."})
