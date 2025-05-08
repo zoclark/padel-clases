@@ -96,6 +96,11 @@ SIMPLE_JWT = {
 
 SITE_ID = 1  # Necesario para django.contrib.sites
 
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',  # Para acceso al admin
+    'allauth.account.auth_backends.AuthenticationBackend',  # Para allauth
+]
+
 ACCOUNT_EMAIL_VERIFICATION = "none"  # Lo gestiona ya tu sistema propio
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_AUTHENTICATION_METHOD = "email"
@@ -104,13 +109,10 @@ ACCOUNT_USERNAME_REQUIRED = False
 # === LOGIN SOCIAL CONFIG ===
 
 SOCIALACCOUNT_PROVIDERS = {
-    "google": {
-        "APP": {
-            "client_id": os.getenv("SOCIAL_AUTH_GOOGLE_CLIENT_ID", ""),
-            "key": "",
-        },
+    'google': {
+        'SCOPE': ['profile', 'email'],
+        'AUTH_PARAMS': {'access_type': 'online'},
     }
-   
 }
 
 # === MIDDLEWARE ===

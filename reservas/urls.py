@@ -66,6 +66,8 @@ urlpatterns = [
     path('auth/registration/', include('dj_rest_auth.registration.urls')),
     path('auth/social/', include('allauth.socialaccount.urls')),  # para el login social
     path('auth/google/', GoogleLoginView.as_view(), name='google_login'),
+    path('accounts/', include('allauth.urls')), 
+    
     # Registro y Autenticación
     path("registro/", RegistroConVerificacionView.as_view(), name="registro_verificado"),
     path("activar/<uidb64>/<token>/", ActivarCuentaView.as_view(), name="activar_cuenta"),

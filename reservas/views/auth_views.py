@@ -259,4 +259,4 @@ from allauth.socialaccount.providers.oauth2.client import OAuth2Client
 class GoogleLoginView(SocialLoginView):
     adapter_class = GoogleOAuth2Adapter
     client_class = OAuth2Client
-    callback_url = "https://auth.expo.io/@your_expo_username/metrikpadel-app-native"  # adaptarlo a tu app
+    callback_url = "https://auth.expo.io/@zoclark/metrikpadel-app-native"  # adaptarlo a tu app
