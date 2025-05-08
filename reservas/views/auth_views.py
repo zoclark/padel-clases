@@ -322,20 +322,39 @@ class GoogleOAuthCallbackView(APIView):
         # 5. Redirigir al móvil con deep link y tokens
         deeplink = f"metrikpadel://login_success?access={access}&refresh={refresh}"
         return HttpResponse(f"""
+<!DOCTYPE html>
 <html>
   <head>
-    <title>Redirigiendo a la app...</title>
+    <meta charset="utf-8" />
+    <title>Redirigiendo a MetrikPadel</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+      body {{
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        font-family: sans-serif;
+        background-color: #1e1e1e;
+        color: white;
+        margin: 0;
+      }}
+      button {{
+        background-color: #6C5CE7;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-size: 16px;
+        margin-top: 20px;
+        cursor: pointer;
+      }}
+    </style>
   </head>
-  <body style="display: flex; align-items: center; justify-content: center; height: 100vh; flex-direction: column;">
-    <h2>Redirigiendo a MetrikPadel...</h2>
-    <p>Si no se abre automáticamente, pulsa el botón:</p>
-    <a href="{deeplink}" style="padding: 12px 24px; background: #6C5CE7; color: white; border-radius: 8px; text-decoration: none;">Abrir App</a>
-    <script>
-      setTimeout(() => {{
-        window.location.href = "{deeplink}";
-      }}, 500);
-    </script>
+  <body>
+    <p>Haz clic en el botón para abrir la app MetrikPadel</p>
+    <button onclick="window.location.href='{deeplink}'">Abrir App</button>
   </body>
 </html>
 """)
