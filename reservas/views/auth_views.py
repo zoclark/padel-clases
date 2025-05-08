@@ -321,6 +321,21 @@ class GoogleOAuthCallbackView(APIView):
 
         # 5. Redirigir al móvil con deep link y tokens
         deeplink = f"metrikpadel://login_success?access={access}&refresh={refresh}"
-        return HttpResponse(
-    f"<html><body><script>window.location.href='{deeplink}'</script></body></html>"
-)
+        return HttpResponse(f"""
+<html>
+  <head>
+    <title>Redirigiendo a la app...</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+  </head>
+  <body style="display: flex; align-items: center; justify-content: center; height: 100vh; flex-direction: column;">
+    <h2>Redirigiendo a MetrikPadel...</h2>
+    <p>Si no se abre automáticamente, pulsa el botón:</p>
+    <a href="{deeplink}" style="padding: 12px 24px; background: #6C5CE7; color: white; border-radius: 8px; text-decoration: none;">Abrir App</a>
+    <script>
+      setTimeout(() => {{
+        window.location.href = "{deeplink}";
+      }}, 500);
+    </script>
+  </body>
+</html>
+""")
