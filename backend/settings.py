@@ -193,6 +193,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'reservas.Usuario'
 CSRF_COOKIE_SECURE = True
 
+ALLOWED_REDIRECT_URI_SCHEMES = ['http', 'https', 'metrikpadel']
+
 CORS_ALLOW_ALL_ORIGINS = False
 
 CORS_ALLOWED_ORIGINS = [
