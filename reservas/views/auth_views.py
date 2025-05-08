@@ -282,10 +282,13 @@ class GoogleOAuthCallbackView(APIView):
             'grant_type': 'authorization_code',
         }
         token_resp = requests.post(token_url, data=token_data)
+
+        print("📡 TOKEN RESPONSE STATUS:", token_resp.status_code)
+        print("📡 TOKEN RESPONSE BODY:", token_resp.text)
+        print("📡 TOKEN DATA ENVIADO:", token_data)
+
         if token_resp.status_code != 200:
-            print("❌ Error token_resp:", token_resp.text)
             return Response({'error': 'Fallo al obtener access_token'}, status=400)
-        
         access_token = token_resp.json().get('access_token')
 
         # 2. Obtener información del usuario
