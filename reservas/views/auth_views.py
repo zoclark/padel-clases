@@ -252,11 +252,73 @@ def confirmar_nueva_password(request):
     return Response({"detail": "Contraseña actualizada correctamente."})
 
 
-from dj_rest_auth.registration.views import SocialLoginView
-from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
-from allauth.socialaccount.providers.oauth2.client import OAuth2Client
+import requests
+from django.conf import settings
+from django.shortcuts import redirect
+from rest_framework_simplejwt.tokens import RefreshToken
+from django.contrib.auth import get_user_model
 
-class GoogleLoginView(SocialLoginView):
-    adapter_class = GoogleOAuth2Adapter
-    client_class = OAuth2Client
-    callback_url = "https://auth.expo.io/@zoclark/metrikpadel-app-native"  # adaptarlo a tu app
+User = get_user_model()
+
+GOOGLE_CLIENT_ID = settings.GOOGLE_CLIENT_ID
+GOOGLE_CLIENT_SECRET = settings.GOOGLE_CLIENT_SECRET
+
+print("🧪 GOOGLE_CLIENT_ID:", settings.GOOGLE_CLIENT_ID)
+REDIRECT_URI = 'https://metrikpadel.com/api/auth/oauth2/callback/'
+
+class GoogleOAuthCallbackView(APIView):
+    def get(self, request):
+        code = request.GET.get('code')
+        if not code:
+            return Response({'error': 'No se recibió código'}, status=400)
+
+        # 1. Intercambiar código por access_token
+        token_url = 'https://oauth2.googleapis.com/token'
+        token_data = {
+            'code': code,
+            'client_id': GOOGLE_CLIENT_ID,
+            'client_secret': GOOGLE_CLIENT_SECRET,
+            'redirect_uri': REDIRECT_URI,
+            'grant_type': 'authorization_code',
+        }
+        token_resp = requests.post(token_url, data=token_data)
+        if token_resp.status_code != 200:
+            print("❌ Error token_resp:", token_resp.text)
+            return Response({'error': 'Fallo al obtener access_token'}, status=400)
+        
+        access_token = token_resp.json().get('access_token')
+
+        # 2. Obtener información del usuario
+        userinfo_resp = requests.get(
+            'https://www.googleapis.com/oauth2/v2/userinfo',
+            headers={'Authorization': f'Bearer {access_token}'}
+        )
+        if userinfo_resp.status_code != 200:
+            return Response({'error': 'Fallo al obtener datos del usuario'}, status=400)
+
+        info = userinfo_resp.json()
+        email = info.get('email')
+        name = info.get('name', '')
+        picture = info.get('picture', '')
+
+        if not email:
+            return Response({'error': 'Email no encontrado'}, status=400)
+
+        # 3. Crear o encontrar el usuario
+        user, _ = User.objects.get_or_create(email=email, defaults={
+            'username': email,
+            'first_name': name,
+            'is_active': True,
+        })
+
+        if not user.is_active:
+            user.is_active = True
+            user.save()
+
+        # 4. Generar JWT
+        refresh = RefreshToken.for_user(user)
+        access = str(refresh.access_token)
+
+        # 5. Redirigir al móvil con deep link y tokens
+        deeplink = f"metrikpadel://login_success?access={access}&refresh={refresh}"
+        return redirect(deeplink)
