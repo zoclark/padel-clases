@@ -254,7 +254,6 @@ def confirmar_nueva_password(request):
 
 import requests
 from django.conf import settings
-from django.shortcuts import redirect
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import get_user_model
 
