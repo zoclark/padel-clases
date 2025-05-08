@@ -1,9 +1,8 @@
-from django.urls import path, include
+from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView
 from rest_framework_simplejwt.views import TokenObtainPairView as DefaultTokenView
 from reservas.serializers import CustomTokenObtainPairSerializer
-from dj_rest_auth.registration.views import SocialAccountListView
-from allauth.socialaccount.providers.google import views as google_views
+
 
 class CustomTokenView(DefaultTokenView):
     serializer_class = CustomTokenObtainPairSerializer
@@ -11,13 +10,11 @@ class CustomTokenView(DefaultTokenView):
 # Vistas de autenticación
 from reservas.views.auth_views import (solicitar_reset_password, 
     verificar_token_reset, confirmar_nueva_password,
-    resend_verification_email, 
+    resend_verification_email, GoogleOAuthCallbackView,
     RegistroConVerificacionView, ActivarCuentaView,
     estado_verificacion, completar_onboarding, 
-    onboarding_perfil_alumno, 
-    onboarding_perfil_alumno,
-    GoogleLoginView
 )
+
 # Vistas de usuario
 from reservas.views.usuario_views import (
     perfil_usuario, guardar_push_token,
@@ -62,12 +59,7 @@ urlpatterns = [
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
 
     # Login social
-    path('auth/', include('dj_rest_auth.urls')),
-    path('auth/registration/', include('dj_rest_auth.registration.urls')),
-    path('auth/social/', include('allauth.socialaccount.urls')),  # para el login social
-    path('auth/google/', GoogleLoginView.as_view(), name='google_login'),
-    path('accounts/', include('allauth.urls')), 
-    
+    path('auth/oauth2/callback/', GoogleOAuthCallbackView.as_view(), name='google-oauth-callback'),
     # Registro y Autenticación
     path("registro/", RegistroConVerificacionView.as_view(), name="registro_verificado"),
     path("activar/<uidb64>/<token>/", ActivarCuentaView.as_view(), name="activar_cuenta"),

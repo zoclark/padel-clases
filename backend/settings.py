@@ -56,30 +56,30 @@ EMAIL_HOST_USER = 'info@metrikpadel.com'
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 DEFAULT_FROM_EMAIL = 'info@metrikpadel.com'
 
-# === APLICACIONES ===
+SITE_ID = 1
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
-    "django.contrib.sites",
+    'django.contrib.sites',  # ✅ necesario para allauth
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    
     'corsheaders',
     'rest_framework',
     'reservas',
+
     'rest_framework_simplejwt.token_blacklist',
-    "allauth",
-    "allauth.account",
-    "allauth.socialaccount",
-    "allauth.socialaccount.providers.google",
-    "allauth.socialaccount.providers.facebook",
-    "allauth.socialaccount.providers.apple",  # si decides usar Apple también
-    "dj_rest_auth",
-    "dj_rest_auth.registration",
     'rest_framework.authtoken',
 
-    ]
+    # ✅ Allauth completo si usas EmailAddress o SocialAccount
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',  # solo si planeas usarlo
+]
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
@@ -94,26 +94,8 @@ SIMPLE_JWT = {
 }
 
 
-SITE_ID = 1  # Necesario para django.contrib.sites
-
-AUTHENTICATION_BACKENDS = [
-    'django.contrib.auth.backends.ModelBackend',  # Para acceso al admin
-    'allauth.account.auth_backends.AuthenticationBackend',  # Para allauth
-]
-
-ACCOUNT_EMAIL_VERIFICATION = "none"  # Lo gestiona ya tu sistema propio
-ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_AUTHENTICATION_METHOD = "email"
-ACCOUNT_USERNAME_REQUIRED = False
-
-# === LOGIN SOCIAL CONFIG ===
-
-SOCIALACCOUNT_PROVIDERS = {
-    'google': {
-        'SCOPE': ['profile', 'email'],
-        'AUTH_PARAMS': {'access_type': 'online'},
-    }
-}
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
+GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
 
 # === MIDDLEWARE ===
 MIDDLEWARE = [

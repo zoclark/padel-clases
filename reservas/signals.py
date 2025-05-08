@@ -75,3 +75,4 @@ def crear_perfil_alumno(sender, instance, created, **kwargs):
                 ]),
                 session_type=random.choice(["individual", "grupo", "duo"])
             )
+
