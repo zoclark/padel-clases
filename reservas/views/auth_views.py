@@ -340,21 +340,20 @@ class GoogleOAuthCallbackView(APIView):
         color: white;
         margin: 0;
       }}
-      button {{
+      a {{
         background-color: #6C5CE7;
         color: white;
-        border: none;
+        text-decoration: none;
         padding: 12px 24px;
         border-radius: 8px;
         font-size: 16px;
         margin-top: 20px;
-        cursor: pointer;
       }}
     </style>
   </head>
   <body>
     <p>Haz clic en el botón para abrir la app MetrikPadel</p>
-    <button onclick="window.location.href='{deeplink}'">Abrir App</button>
+    <a href="{deeplink}">Abrir App</a>
   </body>
 </html>
 """)
