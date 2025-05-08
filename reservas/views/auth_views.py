@@ -14,7 +14,7 @@ from datetime import timedelta
 import requests
 import os
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
-
+from django.http import HttpResponseRedirect
 from ..models import Usuario, AlumnoPerfil, AlumnoPerfilEvolucion, PushToken
 from ..serializers import AlumnoPerfilSerializer, AlumnoPerfilEvolucionSerializer
 from ..utils_stats import validate_stats, get_level_ranges, get_pool_for_level, get_stats_list
@@ -321,4 +321,4 @@ class GoogleOAuthCallbackView(APIView):
 
         # 5. Redirigir al móvil con deep link y tokens
         deeplink = f"metrikpadel://login_success?access={access}&refresh={refresh}"
-        return redirect(deeplink)
+        return HttpResponseRedirect(deeplink)
