@@ -353,7 +353,14 @@ class GoogleOAuthCallbackView(APIView):
   </head>
   <body>
     <p>Haz clic en el botón para abrir la app MetrikPadel</p>
-    <a href="{deeplink}">Abrir App</a>
+
+    <!-- Universal deep link -->
+    <a href="metrikpadel://login_success?access={access}&refresh={refresh}">Abrir App</a>
+
+    <!-- Android fallback usando intent:// -->
+    <a href="intent://login_success?access={access}&refresh={refresh}#Intent;scheme=metrikpadel;package=com.zoclark.metrikpadelappnative;end">
+      Abrir App (Android)
+    </a>
   </body>
 </html>
 """)
