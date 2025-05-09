@@ -5,3 +5,4 @@ from .caracteristicas import Caracteristica
 from .pozo import Pozo, ParticipantePozo, Afinidad, JugadorPozo
 from .amistad import Amistad
 from .notificaciones import Notificacion
+from .club import *

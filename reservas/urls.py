@@ -2,7 +2,7 @@ from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView
 from rest_framework_simplejwt.views import TokenObtainPairView as DefaultTokenView
 from reservas.serializers import CustomTokenObtainPairSerializer
-
+from allauth.socialaccount.providers.google import views as google_views
 
 class CustomTokenView(DefaultTokenView):
     serializer_class = CustomTokenObtainPairSerializer

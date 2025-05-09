@@ -97,6 +97,9 @@ SIMPLE_JWT = {
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
 
+
+
+
 # === MIDDLEWARE ===
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -122,9 +125,15 @@ REST_FRAMEWORK = {
      'DEFAULT_RENDERER_CLASSES': (  # 🔥 AÑADE ESTO
         'rest_framework.renderers.JSONRenderer',
     ),
+    'DEFAULT_FILTER_BACKENDS': (
+        'django_filters.rest_framework.DjangoFilterBackend',
+    ),    
 }
 
-
+REST_FRAMEWORK.update({
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 20  # o el tamaño que desees
+})
 
 
 # === RUTAS Y WSGI ===

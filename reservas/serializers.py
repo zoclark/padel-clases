@@ -91,25 +91,32 @@ class TrainingSessionSerializer(serializers.ModelSerializer):
 
 # --- Recursos personalizados ---
 class RecursoAlumnoSerializer(serializers.ModelSerializer):
+    thumbnail = serializers.SerializerMethodField()
+
     class Meta:
         model = RecursoAlumno
         fields = "__all__"
 
-    def to_representation(self, instance):
-        representation = super().to_representation(instance)
+    def get_thumbnail(self, obj):
+        """
+        Devuelve la miniatura de YouTube si no hay thumbnail explícito
+        """
+        if obj.thumbnail:  # Campo explícito en el modelo (si existe)
+            return obj.thumbnail.url if hasattr(obj.thumbnail, 'url') else obj.thumbnail
 
-        if not representation["thumbnail"]:
-            video_id = self.extract_video_id(instance.url)
+        if obj.url:
+            video_id = self.extract_video_id(obj.url)
             if video_id:
-                thumbnail_url = f"https://img.youtube.com/vi/{video_id}/maxresdefault.jpg"
-                representation["thumbnail"] = thumbnail_url
-        return representation
+                return f"https://img.youtube.com/vi/{video_id}/maxresdefault.jpg"
+        return None
 
     def extract_video_id(self, url):
-        match = re.search(r"youtube\.com(?:/[^/]+)*\?v=([^&]+)", url)
-        if match:
-            return match.group(1)
-        return None
+        """
+        Extrae el ID de un vídeo de YouTube desde múltiples formatos de URL
+        """
+        match = re.search(r'(?:v=|\/)([0-9A-Za-z_-]{11})(?:&|\/|$)', url)
+        return match.group(1) if match else None
+
 
 # --- Reservas ---
 class ReservaSerializer(serializers.ModelSerializer):
@@ -267,3 +274,157 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         data["email"] = user.email
         data["rol"] = user.rol
         return data   
+    
+from rest_framework import serializers
+from .models import (
+    Club, ClubHorario, ClubServicio, ClubImagen, Pista, TarifaFranja,
+    IncidenciaPista, PromocionClub, PartnershipClub, EventoClub,
+    ClubUsuarioRelacion, ReviewClub, ResumenReviewIA, LogroClub,
+    RankingClub, HistorialClubUsuario, PrediccionOcupacion, MapaCalorClub,
+    TipoSuperficie, ServicioClub, Idioma, CategoriaReview, TagClub
+)
+class TipoSuperficieSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TipoSuperficie
+        fields = ['id', 'nombre']
+
+class ServicioClubSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ServicioClub
+        fields = ['id', 'nombre']
+
+class IdiomaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Idioma
+        fields = ['id', 'nombre']
+
+class CategoriaReviewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CategoriaReview
+        fields = ['id', 'nombre']
+
+class TagClubSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TagClub
+        fields = ['id', 'nombre']
+
+class ClubHorarioSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ClubHorario
+        fields = ['dia_semana', 'apertura', 'cierre']
+
+class ClubServicioSerializer(serializers.ModelSerializer):
+    servicio = ServicioClubSerializer(read_only=True)
+
+    class Meta:
+        model = ClubServicio
+        fields = ['servicio']
+
+class ClubImagenSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ClubImagen
+        fields = ['imagen', 'descripcion', 'orden']
+
+class PistaSerializer(serializers.ModelSerializer):
+    superficie = TipoSuperficieSerializer(read_only=True)
+
+    class Meta:
+        model = Pista
+        fields = [
+            'id', 'nombre', 'indoor', 'cubierta_exterior', 'abierta',
+            'es_1vs1', 'es_competicion', 'iluminacion_nocturna',
+            'accesible_minusvalidos', 'superficie'
+        ]
+
+class TarifaFranjaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TarifaFranja
+        fields = '__all__'
+
+class IncidenciaPistaSerializer(serializers.ModelSerializer):
+    pista = serializers.StringRelatedField()
+
+    class Meta:
+        model = IncidenciaPista
+        fields = '__all__'
+
+class PromocionClubSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PromocionClub
+        fields = '__all__'
+
+class PartnershipClubSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PartnershipClub
+        fields = '__all__'
+
+class EventoClubSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EventoClub
+        fields = '__all__'
+
+class ClubUsuarioRelacionSerializer(serializers.ModelSerializer):
+    usuario = serializers.StringRelatedField()
+
+    class Meta:
+        model = ClubUsuarioRelacion
+        fields = '__all__'
+
+class ReviewClubSerializer(serializers.ModelSerializer):
+    categorias = CategoriaReviewSerializer(many=True, read_only=True)
+    usuario = serializers.StringRelatedField()
+
+    class Meta:
+        model = ReviewClub
+        fields = ['id', 'usuario', 'rating', 'comentario', 'fecha', 'categorias']
+
+class ResumenReviewIASerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ResumenReviewIA
+        fields = ['resumen_positivo', 'resumen_negativo', 'actualizado']
+
+class LogroClubSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LogroClub
+        fields = ['titulo', 'descripcion', 'icono', 'fecha_otorgado']
+
+class RankingClubSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RankingClub
+        fields = ['provincia', 'region', 'puntuacion_total', 'posicion', 'ultima_actualizacion']
+
+class HistorialClubUsuarioSerializer(serializers.ModelSerializer):
+    usuario = serializers.StringRelatedField()
+
+    class Meta:
+        model = HistorialClubUsuario
+        fields = '__all__'
+
+class PrediccionOcupacionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PrediccionOcupacion
+        fields = '__all__'
+
+class MapaCalorClubSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MapaCalorClub
+        fields = '__all__'
+
+class ClubSerializer(serializers.ModelSerializer):
+    horarios = ClubHorarioSerializer(many=True, read_only=True)
+    servicios = ClubServicioSerializer(many=True, read_only=True)
+    imagenes = ClubImagenSerializer(many=True, read_only=True)
+    pistas = PistaSerializer(many=True, read_only=True)
+    promociones = PromocionClubSerializer(many=True, read_only=True)
+    partnerships = PartnershipClubSerializer(many=True, read_only=True)
+    eventos = EventoClubSerializer(many=True, read_only=True)
+    logros = LogroClubSerializer(many=True, read_only=True)
+    ranking = RankingClubSerializer(read_only=True)
+    resumen_reviews = ResumenReviewIASerializer(read_only=True)
+    idiomas = IdiomaSerializer(many=True, read_only=True)
+    idioma_principal = IdiomaSerializer(read_only=True)
+    tags = TagClubSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Club
+        fields = '__all__'
