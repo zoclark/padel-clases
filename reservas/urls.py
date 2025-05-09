@@ -102,5 +102,5 @@ urlpatterns = [
     path("notificaciones/eliminar/<int:pk>/", eliminar_notificacion),
 
     # ViewSets API
-    path("", include(router.urls)),
+    path("api/", include(router.urls)),
 ]
